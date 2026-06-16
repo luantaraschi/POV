@@ -6,15 +6,12 @@
   import { treatments, palette, type Treatment } from '../design/tokens'
   import { unlockAudio, press, dock, scoreSting, celebrate, tick, thunk } from '../audio/clicks'
   import Segmented from '../ui/Segmented.svelte'
-  import PrivacyHandoff from '../ui/PrivacyHandoff.svelte'
   import { tierCopy, tierVar } from '../game/scoring'
   import { game } from '../game/store.svelte'
 
   let treatment = $state<Treatment>('hibrido')
-  let showPrivacy = $state(false) // interstício "passe o aparelho" antes de o Dono ver o alvo
   let devOpen = $state(false) // gaveta de controles de desenvolvimento (pular fases / tratamento)
   let lockGestures = $state(false) // modo teste: gestos mexem as peças mas NÃO avançam de fase
-  let hasPeeked = $state(false) // o Dono já viu o alvo nesta rodada
   let toast = $state('') // aviso flutuante curto (feedback dos gestos físicos)
   let toastTimer: ReturnType<typeof setTimeout> | undefined
   function flashToast(msg: string) {
@@ -53,29 +50,16 @@
     press()
     game.phase = s
   }
-  function setupNewRound() {
-    showPrivacy = false
-    hasPeeked = false
-    game.nextRound() // store: novo alvo, valor=12*STEP_P, cardIndex++, phase='hidden' (dispara dock() no $effect abaixo)
-    roundSeed++
-  }
-  function novaRodada() {
-    unlockAudio()
-    press()
-    setupNewRound()
-  }
   // gesto físico: jogador agarrou e GIROU o disco na revelação (o giro/som rodam no Meter)
+  // atalho redundante do botão "Ver placar" — leva ao placar, não reinicia rodada
   function handleDiscSpin() {
-    if (lockGestures) return // modo teste: só gira, não começa rodada
-    setupNewRound()
+    if (lockGestures) return // modo teste: só gira, não avança
+    game.toScoreboard()
   }
-  // gesto físico: a tampa assentou aberta (Dono viu) / fechada (memorizou) -> avança de fase
+  // gesto físico: a tampa assentou fechada (Dono memorizou o alvo) -> libera os palpites
   function handleCoverSettle(open: boolean) {
     if (lockGestures) return // modo teste: abre/fecha livre, sem mudar de fase
-    if (open && game.phase === 'hidden') {
-      game.phase = 'peek'
-      hasPeeked = true
-    } else if (!open && game.phase === 'peek' && hasPeeked) {
+    if (!open && game.phase === 'peek') {
       game.phase = 'guessing'
       flashToast('Palpites liberados — arraste o ponteiro.')
     }
@@ -88,17 +72,13 @@
 
   // ---- fluxo guiado da rodada: uma única ação primária por fase ----
   const primaryLabel = $derived(
-    game.phase === 'hidden' ? 'Passar para o Dono do POV'
-    : game.phase === 'peek' ? 'Já memorizei — esconder'
+    game.phase === 'peek' ? 'Já memorizei — esconder'
     : game.phase === 'guessing' ? 'Travar palpite'
-    : 'Nova rodada',
+    : 'Ver placar',
   )
   function advancePrimary() {
     unlockAudio()
-    if (game.phase === 'hidden') {
-      press()
-      showPrivacy = true // pede o hand-off de privacidade antes de revelar o alvo
-    } else if (game.phase === 'peek') {
+    if (game.phase === 'peek') {
       press()
       game.phase = 'guessing'
     } else if (game.phase === 'guessing') {
@@ -106,20 +86,9 @@
       game.recordRound(scoreFor(game.value, game.target)) // contabiliza a pontuação cooperativa no travamento
       game.phase = 'reveal'
     } else {
-      novaRodada()
+      press()
+      game.toScoreboard() // revelação concluída -> entrega o placar (a loja inicia a próxima rodada)
     }
-  }
-  function confirmPrivacy() {
-    // confirmado pelo Dono: agora sim o alvo aparece (cobertura abre na fase peek)
-    unlockAudio()
-    press()
-    showPrivacy = false
-    hasPeeked = true
-    game.phase = 'peek'
-  }
-  function cancelPrivacy() {
-    press()
-    showPrivacy = false
   }
 
   // som de encaixe da carta no suporte quando a rodada troca a carta
@@ -131,8 +100,7 @@
   })
 
   const hint = $derived(
-    game.phase === 'hidden' ? 'Dono do POV: puxe a alavanca e veja onde está o alvo.'
-    : game.phase === 'peek' ? 'Memorize o alvo e feche o medidor para liberar os palpites.'
+    game.phase === 'peek' ? 'Memorize o alvo e feche o medidor para liberar os palpites.'
     : game.phase === 'guessing' ? 'Arraste o ponteiro — sinta as travas e os cliques.'
     : 'Revelação! Compare o ponteiro com o alvo.',
   )
@@ -284,7 +252,7 @@
   <footer class="footer">
     <button class="btn-primary primary-action" onclick={advancePrimary}>{primaryLabel}</button>
     {#if game.phase === 'reveal'}
-      <p class="spin-hint">↻ Gire a roleta para embaralhar — ou toque acima.</p>
+      <p class="spin-hint">↻ Gire a roleta ou toque em Ver placar.</p>
     {/if}
     <details class="dev" bind:open={devOpen}>
       <summary>dev</summary>
@@ -321,8 +289,6 @@
   {#if toast}
     <div class="toast" role="status">{toast}</div>
   {/if}
-
-  <PrivacyHandoff open={showPrivacy} onConfirm={confirmPrivacy} onCancel={cancelPrivacy} />
 
 <style>
   /* ---- STAGE ---- */
