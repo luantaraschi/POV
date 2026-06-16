@@ -4,6 +4,7 @@
   import { STEPS, STEP_P, scoreFor, stepIndex } from '../lib/meter/geometry'
   import { treatments, palette, type Treatment } from '../lib/design/tokens'
   import { setSoundEnabled, unlockAudio, press, dock, scoreSting, celebrate, tick, thunk } from '../lib/audio/clicks'
+  import { tierCopy, tierVar } from '../lib/game/scoring'
 
   type Theme = 'dark' | 'light'
   function initTheme(): Theme {
@@ -216,24 +217,13 @@
 
   // --- resultado da revelação: pontuação, frase com personalidade, distância ---
   let roundSeed = $state(0)
-  const tierCopy: Record<0 | 2 | 3 | 4, string[]> = {
-    4: ['Na mesma frequência!', 'Sintonia perfeita.', 'Leu a mente, hein?'],
-    3: ['Quase perfeito.', 'Faltou um triz.', 'Quase na mosca.'],
-    2: ['Chegaram perto.', 'Tá na vibe.', 'No caminho certo.'],
-    0: ['Fora de sintonia.', 'Outro universo, hein?', 'Frequências opostas.'],
-  }
   const revealScore = $derived(scoreFor(value, target))
   const revealPhrase = $derived(tierCopy[revealScore][roundSeed % tierCopy[revealScore].length])
   const revealGap = $derived(Math.abs(stepIndex(value) - stepIndex(target)))
   const gapLabel = $derived(
     revealGap === 0 ? 'no alvo' : revealGap === 1 ? '1 casa de distância' : `${revealGap} casas de distância`,
   )
-  const tierVar = $derived(
-    revealScore === 4 ? 'var(--pov-bullseye)'
-    : revealScore === 3 ? 'var(--pov-mostarda)'
-    : revealScore === 2 ? 'var(--pov-laranja)'
-    : 'var(--pov-coral)',
-  )
+  const tierVarValue = $derived(tierVar(revealScore))
 
   // --- revelação em beats (suspense -> resultado) + reduced-motion ---
   let reduce = $state(false)
@@ -439,7 +429,7 @@
 
     {#if phase === 'reveal'}
       {#if showResult}
-        <div class="result" style:--tier={tierVar} aria-live="polite">
+        <div class="result" style:--tier={tierVarValue} aria-live="polite">
           <div class="chip"><span class="num" class:pop={scoreLanded}>{displayScore}</span></div>
           <div class="result-text">
             <p class="phrase">{revealPhrase}</p>
