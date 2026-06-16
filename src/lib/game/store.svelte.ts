@@ -37,6 +37,7 @@ function makeStore() {
     get screen() { return screen }, set screen(s) { screen = s },
     get phase() { return phase }, set phase(p) { phase = p },
     get config() { return config },
+    get roundIndex() { return roundIndex },
     get target() { return target }, get cardIndex() { return cardIndex },
     get value() { return value }, set value(v) { value = v },
     get card() { return CARDS[cardIndex % CARDS.length] },
