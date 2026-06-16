@@ -8,6 +8,7 @@
   import { treatments, palette, type Treatment } from '../lib/design/tokens'
   import { setSoundEnabled, unlockAudio, press, dock, scoreSting, celebrate, tick, thunk } from '../lib/audio/clicks'
   import Segmented from '../lib/ui/Segmented.svelte'
+  import PrivacyHandoff from '../lib/ui/PrivacyHandoff.svelte'
   import { tierCopy, tierVar } from '../lib/game/scoring'
 
   type Theme = 'dark' | 'light'
@@ -368,22 +369,7 @@
     <div class="toast" role="status">{toast}</div>
   {/if}
 
-  {#if showPrivacy}
-    <div class="privacy" role="dialog" aria-modal="true" aria-label="Passar o aparelho para o Dono do POV">
-      <div class="privacy-card">
-        <svg class="privacy-icon" viewBox="0 0 48 48" aria-hidden="true">
-          <rect x="14" y="5" width="20" height="38" rx="4.5" fill="none" stroke="currentColor" stroke-width="2.5" />
-          <circle cx="24" cy="37.5" r="1.7" fill="currentColor" />
-          <path d="M23 14 a6.5 6.5 0 1 1 -4.5 11" fill="none" stroke="var(--pov-coral)" stroke-width="2.6" stroke-linecap="round" />
-          <circle cx="29" cy="20" r="1.6" fill="var(--pov-coral)" />
-        </svg>
-        <p class="privacy-title">Passe o POV para o Dono</p>
-        <p class="privacy-sub">Só o Dono do POV pode ver o alvo secreto. Quando ele estiver com o aparelho em mãos, toque abaixo.</p>
-        <button class="btn-primary" onclick={confirmPrivacy}>Sou o Dono — ver o alvo</button>
-        <button class="privacy-cancel" onclick={cancelPrivacy}>Voltar</button>
-      </div>
-    </div>
-  {/if}
+  <PrivacyHandoff open={showPrivacy} onConfirm={confirmPrivacy} onCancel={cancelPrivacy} />
 </div>
 
 <style>
@@ -707,81 +693,6 @@
     height: 18px;
     accent-color: var(--pov-coral);
     cursor: pointer;
-  }
-
-  /* interstício de privacidade: "passe o aparelho" antes de o Dono ver o alvo */
-  .privacy {
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-    display: grid;
-    place-items: center;
-    padding: var(--sp-5);
-    background: rgba(8, 16, 33, 0.6);
-    backdrop-filter: blur(8px);
-    animation: privacy-fade 0.22s ease both;
-  }
-  .privacy-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--sp-3);
-    width: min(380px, 92vw);
-    padding: var(--sp-6) var(--sp-5);
-    text-align: center;
-    border-radius: var(--r-5);
-    background: var(--result-bg);
-    border: 1px solid var(--result-border);
-    box-shadow: var(--elev-3);
-    animation: result-in 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.05) both;
-  }
-  .privacy-icon {
-    width: 48px;
-    height: 48px;
-    color: var(--text);
-    margin-bottom: var(--sp-1);
-  }
-  .privacy-title {
-    margin: 0;
-    font-family: 'Bricolage Grotesque', sans-serif;
-    font-weight: 700;
-    font-size: var(--fs-700);
-    line-height: 1.1;
-    color: var(--text);
-  }
-  .privacy-sub {
-    margin: 0 0 var(--sp-2);
-    max-width: 30ch;
-    font-size: var(--fs-400);
-    line-height: var(--lh-body);
-    color: var(--text-soft);
-  }
-  .privacy-card .btn-primary {
-    width: 100%;
-  }
-  .privacy-cancel {
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-    min-height: 40px;
-    padding: var(--sp-1) var(--sp-3);
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: var(--fs-400);
-    color: var(--text-soft);
-    border-radius: var(--r-2);
-  }
-  .privacy-cancel:focus-visible {
-    outline: 3px solid var(--pov-mostarda);
-    outline-offset: 2px;
-  }
-  @keyframes privacy-fade {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
   }
 
   /* ---- SEGMENTED CONTROL ---- */
