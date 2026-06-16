@@ -1,6 +1,6 @@
 import { drawTarget, STEP_P } from '../meter/geometry'
 import { donoIndexFor, totalRounds, maxPossibleTotal, maxPossibleSoFar, sintoniaPct, selo, isLastRound } from './rules'
-import { setSoundEnabled } from '../audio/clicks'
+import { setSoundEnabled, setHapticsEnabled } from '../audio/clicks'
 import type { MeterState } from '../meter/Meter.svelte'
 
 export type Screen = 'home' | 'howToPlay' | 'setup' | 'roundIntro' | 'inRound' | 'scoreboard' | 'gameOver'
@@ -32,6 +32,16 @@ function makeStore() {
   let results = $state<RoundResult[]>([])
   let theme = $state<'dark' | 'light'>(initTheme())
   let sound = $state(true)
+  let haptics = $state(true)
+
+  let reduce = $state(false)
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    reduce = mq.matches
+    mq.addEventListener('change', () => (reduce = mq.matches))
+  }
+
+  let returnScreen = $state<Screen>('home')
 
   return {
     get screen() { return screen }, set screen(s) { screen = s },
@@ -52,10 +62,16 @@ function makeStore() {
     get results() { return results },
     get theme() { return theme },
     get sound() { return sound },
+    get haptics() { return haptics },
+    get reduce() { return reduce },
+    get returnScreen() { return returnScreen },
     toggleTheme() { theme = theme === 'dark' ? 'light' : 'dark'; if (typeof localStorage !== 'undefined') localStorage.setItem('pov-theme', theme) },
     toggleSound() { sound = !sound; setSoundEnabled(sound) },
+    toggleHaptics() { haptics = !haptics; setHapticsEnabled(haptics) },
     goHome() { screen = 'home' },
     openSetup() { screen = 'setup' },
+    openHowToPlay() { returnScreen = screen; screen = 'howToPlay' },
+    closeHowToPlay() { screen = returnScreen },
     setupGame(players: Player[], voltas: 1 | 2 | 3, deck: 'classico' = 'classico') {
       config = { players, voltas, deck }
       roundIndex = 0; results = []

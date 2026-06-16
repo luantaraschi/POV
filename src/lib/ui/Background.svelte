@@ -109,4 +109,9 @@
   .dim-veil.on {
     opacity: 1;
   }
+  @media (prefers-reduced-motion: reduce) {
+    .dim-veil {
+      transition: none;
+    }
+  }
 </style>

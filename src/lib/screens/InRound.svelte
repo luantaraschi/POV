@@ -234,13 +234,14 @@
 
     {#if game.phase === 'reveal'}
       {#if showResult}
-        <div class="result" style:--tier={tierVarValue} aria-live="polite">
-          <div class="chip"><span class="num" class:pop={scoreLanded}>{displayScore}</span></div>
+        <div class="result" style:--tier={tierVarValue}>
+          <div class="chip"><span class="num" class:pop={scoreLanded} aria-hidden="true">{displayScore}</span></div>
           <div class="result-text">
             <p class="phrase">{revealPhrase}</p>
             <p class="pts">{revealScore} pontos · {gapLabel}</p>
           </div>
         </div>
+        <p class="sr-only" role="status" aria-live="polite" aria-atomic="true">{revealScore} pontos, {gapLabel}.</p>
       {:else}
         <p class="hint suspense">Revelando o POV…</p>
       {/if}
@@ -291,6 +292,17 @@
   {/if}
 
 <style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
   /* ---- STAGE ---- */
   .stage {
     position: relative;
