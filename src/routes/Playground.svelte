@@ -2,6 +2,7 @@
   import Meter, { type MeterState } from '../lib/meter/Meter.svelte'
   import Card from '../lib/cards/Card.svelte'
   import Background from '../lib/ui/Background.svelte'
+  import Console from '../lib/ui/Console.svelte'
   import { STEPS, STEP_P, scoreFor, stepIndex } from '../lib/meter/geometry'
   import { treatments, palette, type Treatment } from '../lib/design/tokens'
   import { setSoundEnabled, unlockAudio, press, dock, scoreSting, celebrate, tick, thunk } from '../lib/audio/clicks'
@@ -57,14 +58,6 @@
   ]
   let cardIndex = $state(0)
   const card = $derived(cards[cardIndex])
-
-  // faixa quadriculada da borda inferior do console (mosaico retrô, como o tabuleiro físico)
-  const bandCells = [
-    palette.coral, palette.offwhite, palette.piscina, palette.mostarda,
-    palette.menta, palette.lilas, palette.rosa, palette.laranja,
-    palette.creme, palette.petroleo, palette.coral, palette.menta,
-    palette.mostarda, palette.piscina, palette.offwhite, palette.lilas,
-  ]
 
   const states: Array<{ id: MeterState; label: string }> = [
     { id: 'hidden', label: 'Escondido' },
@@ -330,7 +323,7 @@
   </header>
 
   <main class="stage">
-    <div class="tray">
+    <Console>
       <div class="screen">
         <Meter
           {target}
@@ -357,12 +350,7 @@
           <Card left={card.left} right={card.right} leftColor={card.lc} rightColor={card.rc} />
         {/key}
       </div>
-      <div class="console-band" aria-hidden="true">
-        {#each bandCells as c}
-          <span style:background={c}></span>
-        {/each}
-      </div>
-    </div>
+    </Console>
 
     {#if phase === 'reveal'}
       {#if showResult}
@@ -534,32 +522,6 @@
     align-items: center;
     gap: var(--sp-4);
     padding: var(--sp-5) var(--sp-4) var(--sp-6);
-  }
-  /* console de plástico azul moldado (opaco): bisel no topo, sombra interna embaixo, skirt + faixa */
-  .tray {
-    position: relative;
-    width: min(720px, 96vw);
-    padding: var(--sp-4) var(--sp-4) calc(var(--sp-5) + 16px);
-    border-radius: var(--r-5);
-    background: linear-gradient(180deg, var(--console-top), var(--console-bot));
-    box-shadow:
-      var(--tray-shadow),
-      inset 0 1px 0 var(--console-edge),
-      inset 0 -12px 26px rgba(7, 16, 33, 0.42);
-    overflow: hidden;
-  }
-  /* faixa quadriculada multicolor na borda inferior (assinatura do tabuleiro físico) */
-  .console-band {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 14px;
-    display: flex;
-    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.4);
-  }
-  .console-band span {
-    flex: 1;
   }
   .screen {
     border-radius: var(--r-4);
