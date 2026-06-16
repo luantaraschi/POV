@@ -253,3 +253,10 @@ export function scallopRingPath(count = 22): string {
   }
   return d + ' Z'
 }
+
+// Sorteio do alvo da rodada: detente com margem ≥3 de cada ponta, para as 5 cunhas
+// (2-3-4-3-2, ±2.5 detentes) caberem sem clipping. Substitui o inline do Playground.
+export function drawTarget(): number {
+  const ti = 3 + Math.floor(Math.random() * (STEPS - 5)) // ti ∈ [3, STEPS-3]
+  return ti * STEP_P
+}
