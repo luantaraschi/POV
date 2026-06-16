@@ -30,6 +30,8 @@
 </script>
 
 {#if open}
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="scrim {variant}" onclick={(e) => { if (e.target === e.currentTarget) onClose() }}>
     <div class="dialog {variant}" bind:this={dialogEl} role="dialog" aria-modal="true" aria-label={ariaLabel} onkeydown={onKeydown} tabindex="-1">
       {#if variant === 'sheet'}<div class="grip" aria-hidden="true"></div>{/if}
