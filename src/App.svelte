@@ -8,16 +8,34 @@
   import InRound from './lib/screens/InRound.svelte'
   import Scoreboard from './lib/screens/Scoreboard.svelte'
   import GameOver from './lib/screens/GameOver.svelte'
+  import { fade } from 'svelte/transition'
   const dim = $derived(game.screen === 'inRound' && game.phase === 'reveal')
 </script>
 
 <Shell {dim}>
-  {#if game.screen === 'home'}<Home />
-  {:else if game.screen === 'howToPlay'}<HowToPlay />
-  {:else if game.screen === 'setup'}<Setup />
-  {:else if game.screen === 'roundIntro'}<RoundIntro />
-  {:else if game.screen === 'inRound'}<InRound />
-  {:else if game.screen === 'scoreboard'}<Scoreboard />
-  {:else if game.screen === 'gameOver'}<GameOver />
-  {/if}
+  {#key game.screen}
+    <div
+      class="screen-anim"
+      in:fade={{ duration: game.reduce ? 0 : 170 }}
+    >
+      {#if game.screen === 'home'}<Home />
+      {:else if game.screen === 'howToPlay'}<HowToPlay />
+      {:else if game.screen === 'setup'}<Setup />
+      {:else if game.screen === 'roundIntro'}<RoundIntro />
+      {:else if game.screen === 'inRound'}<InRound />
+      {:else if game.screen === 'scoreboard'}<Scoreboard />
+      {:else if game.screen === 'gameOver'}<GameOver />
+      {/if}
+    </div>
+  {/key}
 </Shell>
+
+<style>
+  /* Flex passthrough: don't disrupt the Shell's .screen-main flex column */
+  .screen-anim {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+</style>

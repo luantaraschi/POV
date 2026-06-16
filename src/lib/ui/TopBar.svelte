@@ -1,5 +1,6 @@
 <script lang="ts">
   import Logo from './Logo.svelte'
+  import { press } from '../audio/clicks'
 
   type Props = {
     theme: 'dark' | 'light'
@@ -17,7 +18,7 @@
 
   <div class="top-actions">
     {#if onMenu}
-      <button class="iconbtn" aria-label="Menu" onclick={onMenu}>
+      <button class="iconbtn" aria-label="Menu" onclick={() => { press(); onMenu?.() }}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <line x1="4" y1="7" x2="20" y2="7" />
           <line x1="4" y1="12" x2="20" y2="12" />

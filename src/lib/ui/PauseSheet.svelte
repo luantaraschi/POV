@@ -1,6 +1,7 @@
 <script lang="ts">
   import Sheet from './Sheet.svelte'
   import { game } from '../game/store.svelte'
+  import { press } from '../audio/clicks'
 
   type Props = {
     open: boolean
@@ -13,11 +14,13 @@
   let confirmExit = $state(false)
 
   function handleRestart() {
+    press()
     game.playAgain()
     onClose()
   }
 
   function handleExitClick() {
+    press()
     if (!confirmExit) {
       confirmExit = true
       return
@@ -28,6 +31,7 @@
   }
 
   function cancelExit() {
+    press()
     confirmExit = false
   }
 
@@ -42,13 +46,13 @@
 
   <div class="btn-stack">
     <!-- Retomar: coral primary -->
-    <button class="mbtn coral" onclick={onClose}>Retomar</button>
+    <button class="mbtn coral" onclick={() => { press(); onClose() }}>Retomar</button>
 
     <!-- Como jogar: ghost -->
-    <button class="mbtn ghost" onclick={onHowToPlay}>Como jogar</button>
+    <button class="mbtn ghost" onclick={() => { press(); onHowToPlay() }}>Como jogar</button>
 
     <!-- Configurações: ghost -->
-    <button class="mbtn ghost" onclick={onSettings}>Configurações</button>
+    <button class="mbtn ghost" onclick={() => { press(); onSettings() }}>Configurações</button>
 
     <!-- Reiniciar: ghost -->
     <button class="mbtn ghost" onclick={handleRestart}>Reiniciar partida</button>

@@ -1,13 +1,16 @@
 <script lang="ts">
   import { game } from '../game/store.svelte'
   import { palette as designPalette } from '../design/tokens'
+  import { press, confirm } from '../audio/clicks'
 
   // ── Carousel state ──────────────────────────────────────────────────────
   let step = $state(0)
   const TOTAL = 3
 
   function goTo(n: number) {
-    step = Math.max(0, Math.min(TOTAL - 1, n))
+    const next = Math.max(0, Math.min(TOTAL - 1, n))
+    if (next !== step) { press() }
+    step = next
   }
 
   function handleKeyDown(e: KeyboardEvent) {
@@ -17,6 +20,7 @@
 
   // ── CTA action ────────────────────────────────────────────────────────
   function handleCta() {
+    confirm()
     if (game.returnScreen === 'home') {
       game.openSetup()
     } else {
@@ -34,7 +38,7 @@
     <button
       class="close-btn"
       aria-label="Fechar"
-      onclick={() => game.closeHowToPlay()}
+      onclick={() => { press(); game.closeHowToPlay() }}
     >×</button>
   </div>
 

@@ -374,16 +374,26 @@
     letter-spacing: 0.01em;
     background: var(--pov-coral-cta, #d4452f);
     border-bottom: 4px solid var(--pov-coral-lo, #a8302a);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.18),
+      0 4px 14px -4px rgba(200, 65, 47, 0.5);
     transition:
       transform 0.07s ease,
-      filter 0.12s ease;
+      box-shadow 0.08s ease,
+      border-bottom-width 0.07s ease;
   }
   .btn-primary:hover {
-    filter: brightness(1.06);
+    background: color-mix(in srgb, var(--pov-coral-cta, #d4452f) 92%, white 8%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      0 6px 18px -4px rgba(200, 65, 47, 0.6);
   }
   .btn-primary:active {
     transform: translateY(2px);
     border-bottom-width: 2px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 2px 6px -2px rgba(200, 65, 47, 0.4);
   }
   .btn-primary:focus-visible {
     outline: 3px solid var(--pov-mostarda, #e8b24a);
@@ -406,13 +416,15 @@
     background: rgba(255, 255, 255, 0.06);
     transition:
       background 0.12s ease,
-      color 0.12s ease;
+      color 0.12s ease,
+      transform 0.08s ease;
   }
   .btn-ghost:hover {
     background: rgba(255, 255, 255, 0.1);
     color: rgba(241, 230, 203, 0.92);
   }
   .btn-ghost:active {
+    transform: scale(0.98);
     background: rgba(255, 255, 255, 0.04);
   }
   .btn-ghost:focus-visible {
