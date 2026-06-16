@@ -5,11 +5,17 @@
   const hex = $derived(palette[color as ColorName])
   function ink(h: string): string {
     const c = h.replace('#', '')
-    if (c.length < 6) return '#11233f'
-    const ch = (i: number) => parseInt(c.slice(i, i + 2), 16) / 255
-    const lin = (v: number) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4))
-    const L = 0.2126 * lin(ch(0)) + 0.7152 * lin(ch(2)) + 0.0722 * lin(ch(4))
-    return L < 0.46 ? '#f7f1e3' : '#11233f'
+    if (c.length < 6) return '#0a1320'
+    const lum = (hex: string) => {
+      const s = hex.replace('#', '')
+      const ch = (i: number) => parseInt(s.slice(i, i + 2), 16) / 255
+      const lin = (v: number) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4))
+      return 0.2126 * lin(ch(0)) + 0.7152 * lin(ch(2)) + 0.0722 * lin(ch(4))
+    }
+    const bg = lum(h)
+    const ratio = (fg: number) => { const a = Math.max(bg, fg) + 0.05, b = Math.min(bg, fg) + 0.05; return a / b }
+    const LIGHT = '#f7f1e3', DARK = '#0a1320'
+    return ratio(lum(LIGHT)) >= ratio(lum(DARK)) ? LIGHT : DARK
   }
   const initial = $derived((name.trim()[0] || '?').toUpperCase())
 </script>
