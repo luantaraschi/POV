@@ -1,5 +1,6 @@
 <script lang="ts">
-  import Playground from './routes/Playground.svelte'
+  import { game } from './lib/game/store.svelte'
+  import InRound from './lib/screens/InRound.svelte'
 </script>
 
-<Playground />
+{#if game.screen === 'inRound'}<InRound />{/if}

@@ -1,15 +1,16 @@
 <script lang="ts">
-  import Meter, { type MeterState } from '../lib/meter/Meter.svelte'
-  import Card from '../lib/cards/Card.svelte'
-  import Background from '../lib/ui/Background.svelte'
-  import Console from '../lib/ui/Console.svelte'
-  import TopBar from '../lib/ui/TopBar.svelte'
-  import { STEPS, STEP_P, scoreFor, stepIndex } from '../lib/meter/geometry'
-  import { treatments, palette, type Treatment } from '../lib/design/tokens'
-  import { setSoundEnabled, unlockAudio, press, dock, scoreSting, celebrate, tick, thunk } from '../lib/audio/clicks'
-  import Segmented from '../lib/ui/Segmented.svelte'
-  import PrivacyHandoff from '../lib/ui/PrivacyHandoff.svelte'
-  import { tierCopy, tierVar } from '../lib/game/scoring'
+  import Meter, { type MeterState } from '../meter/Meter.svelte'
+  import Card from '../cards/Card.svelte'
+  import Background from '../ui/Background.svelte'
+  import Console from '../ui/Console.svelte'
+  import TopBar from '../ui/TopBar.svelte'
+  import { scoreFor, stepIndex } from '../meter/geometry'
+  import { treatments, palette, type Treatment } from '../design/tokens'
+  import { setSoundEnabled, unlockAudio, press, dock, scoreSting, celebrate, tick, thunk } from '../audio/clicks'
+  import Segmented from '../ui/Segmented.svelte'
+  import PrivacyHandoff from '../ui/PrivacyHandoff.svelte'
+  import { tierCopy, tierVar } from '../game/scoring'
+  import { game } from '../game/store.svelte'
 
   type Theme = 'dark' | 'light'
   function initTheme(): Theme {
@@ -22,9 +23,6 @@
   }
 
   let theme = $state<Theme>(initTheme())
-  let phase = $state<MeterState>('hidden')
-  let target = $state(15 * STEP_P)
-  let value = $state(12 * STEP_P)
   let treatment = $state<Treatment>('hibrido')
   let sound = $state(true)
   let showPrivacy = $state(false) // interstício "passe o aparelho" antes de o Dono ver o alvo
@@ -53,14 +51,14 @@
     return d
   }
 
-  const cards = [
-    { left: 'Frio', right: 'Quente', lc: palette.piscina, rc: palette.coral },
-    { left: 'Normal', right: 'Estranho', lc: palette.creme, rc: palette.lilas },
-    { left: 'Barato', right: 'Caro', lc: palette.menta, rc: palette.mostarda },
-    { left: 'Mal feito', right: 'Bem feito', lc: palette.creme, rc: palette.laranja },
+  // Cores por carta (apresentação local; o texto/índice da carta vivem no store, na MESMA ordem).
+  const cardColors = [
+    { lc: palette.piscina, rc: palette.coral },
+    { lc: palette.creme, rc: palette.lilas },
+    { lc: palette.menta, rc: palette.mostarda },
+    { lc: palette.creme, rc: palette.laranja },
   ]
-  let cardIndex = $state(0)
-  const card = $derived(cards[cardIndex])
+  const cardColor = $derived(cardColors[game.cardIndex % cardColors.length])
 
   const states: Array<{ id: MeterState; label: string }> = [
     { id: 'hidden', label: 'Escondido' },
@@ -71,17 +69,13 @@
   function setState(s: MeterState) {
     unlockAudio()
     press()
-    phase = s
+    game.phase = s
   }
   function setupNewRound() {
     showPrivacy = false
     hasPeeked = false
-    const ti = 3 + Math.floor(Math.random() * (STEPS - 5))
-    target = ti * STEP_P
-    value = 12 * STEP_P
-    cardIndex = (cardIndex + 1) % cards.length // dispara dock() no $effect abaixo
+    game.nextRound() // store: novo alvo, valor=12*STEP_P, cardIndex++, phase='hidden' (dispara dock() no $effect abaixo)
     roundSeed++
-    phase = 'hidden'
   }
   function novaRodada() {
     unlockAudio()
@@ -96,11 +90,11 @@
   // gesto físico: a tampa assentou aberta (Dono viu) / fechada (memorizou) -> avança de fase
   function handleCoverSettle(open: boolean) {
     if (lockGestures) return // modo teste: abre/fecha livre, sem mudar de fase
-    if (open && phase === 'hidden') {
-      phase = 'peek'
+    if (open && game.phase === 'hidden') {
+      game.phase = 'peek'
       hasPeeked = true
-    } else if (!open && phase === 'peek' && hasPeeked) {
-      phase = 'guessing'
+    } else if (!open && game.phase === 'peek' && hasPeeked) {
+      game.phase = 'guessing'
       flashToast('Palpites liberados — arraste o ponteiro.')
     }
   }
@@ -122,22 +116,23 @@
 
   // ---- fluxo guiado da rodada: uma única ação primária por fase ----
   const primaryLabel = $derived(
-    phase === 'hidden' ? 'Passar para o Dono do POV'
-    : phase === 'peek' ? 'Já memorizei — esconder'
-    : phase === 'guessing' ? 'Travar palpite'
+    game.phase === 'hidden' ? 'Passar para o Dono do POV'
+    : game.phase === 'peek' ? 'Já memorizei — esconder'
+    : game.phase === 'guessing' ? 'Travar palpite'
     : 'Nova rodada',
   )
   function advancePrimary() {
     unlockAudio()
-    if (phase === 'hidden') {
+    if (game.phase === 'hidden') {
       press()
       showPrivacy = true // pede o hand-off de privacidade antes de revelar o alvo
-    } else if (phase === 'peek') {
+    } else if (game.phase === 'peek') {
       press()
-      phase = 'guessing'
-    } else if (phase === 'guessing') {
+      game.phase = 'guessing'
+    } else if (game.phase === 'guessing') {
       thunk() // TRAVA o palpite final: encaixe firme, depois a revelação dramática
-      phase = 'reveal'
+      game.recordRound(scoreFor(game.value, game.target)) // contabiliza a pontuação cooperativa no travamento
+      game.phase = 'reveal'
     } else {
       novaRodada()
     }
@@ -148,7 +143,7 @@
     press()
     showPrivacy = false
     hasPeeked = true
-    phase = 'peek'
+    game.phase = 'peek'
   }
   function cancelPrivacy() {
     press()
@@ -158,7 +153,7 @@
   // som de encaixe da carta no suporte quando a rodada troca a carta
   let prevCardIndex: number | undefined
   $effect(() => {
-    const ci = cardIndex
+    const ci = game.cardIndex
     if (prevCardIndex !== undefined && ci !== prevCardIndex) dock()
     prevCardIndex = ci
   })
@@ -171,17 +166,17 @@
   })
 
   const hint = $derived(
-    phase === 'hidden' ? 'Dono do POV: puxe a alavanca e veja onde está o alvo.'
-    : phase === 'peek' ? 'Memorize o alvo e feche o medidor para liberar os palpites.'
-    : phase === 'guessing' ? 'Arraste o ponteiro — sinta as travas e os cliques.'
+    game.phase === 'hidden' ? 'Dono do POV: puxe a alavanca e veja onde está o alvo.'
+    : game.phase === 'peek' ? 'Memorize o alvo e feche o medidor para liberar os palpites.'
+    : game.phase === 'guessing' ? 'Arraste o ponteiro — sinta as travas e os cliques.'
     : 'Revelação! Compare o ponteiro com o alvo.',
   )
 
   // --- resultado da revelação: pontuação, frase com personalidade, distância ---
   let roundSeed = $state(0)
-  const revealScore = $derived(scoreFor(value, target))
+  const revealScore = $derived(scoreFor(game.value, game.target))
   const revealPhrase = $derived(tierCopy[revealScore][roundSeed % tierCopy[revealScore].length])
-  const revealGap = $derived(Math.abs(stepIndex(value) - stepIndex(target)))
+  const revealGap = $derived(Math.abs(stepIndex(game.value) - stepIndex(game.target)))
   const gapLabel = $derived(
     revealGap === 0 ? 'no alvo' : revealGap === 1 ? '1 casa de distância' : `${revealGap} casas de distância`,
   )
@@ -229,7 +224,7 @@
   }
 
   $effect(() => {
-    const p = phase
+    const p = game.phase
     clearTimeout(revealTimer)
     if (countTimer) {
       clearInterval(countTimer)
@@ -253,7 +248,7 @@
     }
   })
 
-  const showConfetti = $derived(phase === 'reveal' && showResult && revealScore === 4 && !reduce)
+  const showConfetti = $derived(game.phase === 'reveal' && showResult && revealScore === 4 && !reduce)
   // bloom de sunburst arco-íris no acerto perfeito (assinatura de identidade no pico de emoção)
   const bloomRings = [
     { r: 30, c: palette.bullseye },
@@ -263,7 +258,7 @@
     { r: 102, c: palette.lilas },
   ]
   // suspense: enquanto a tampa abre (antes do resultado), o fundo escurece e foca no medidor
-  const revealDim = $derived(phase === 'reveal' && !showResult && !reduce)
+  const revealDim = $derived(game.phase === 'reveal' && !showResult && !reduce)
   const confettiDots = Array.from({ length: 16 }, (_, i) => {
     const ang = (i / 16) * Math.PI * 2
     return {
@@ -285,17 +280,17 @@
     <Console>
       <div class="screen">
         <Meter
-          {target}
-          bind:value
-          {phase}
+          target={game.target}
+          bind:value={game.value}
+          phase={game.phase}
           {treatment}
           light={theme === 'light'}
           {roundSeed}
-          scaleLeft={card.left}
-          scaleRight={card.right}
+          scaleLeft={game.card.left}
+          scaleRight={game.card.right}
           onCoverSettle={handleCoverSettle}
           onDiscSpin={handleDiscSpin}
-          showTarget={phase === 'reveal' && showResult}
+          showTarget={game.phase === 'reveal' && showResult}
           {lockGestures}
         />
       </div>
@@ -305,13 +300,13 @@
         <path d={wavePath(600, 17, 7.5, 48, 4.2)} fill="none" stroke="var(--pov-bullseye)" stroke-width="3" vector-effect="non-scaling-stroke" />
       </svg>
       <div class="card-dock">
-        {#key cardIndex}
-          <Card left={card.left} right={card.right} leftColor={card.lc} rightColor={card.rc} />
+        {#key game.cardIndex}
+          <Card left={game.card.left} right={game.card.right} leftColor={cardColor.lc} rightColor={cardColor.rc} />
         {/key}
       </div>
     </Console>
 
-    {#if phase === 'reveal'}
+    {#if game.phase === 'reveal'}
       {#if showResult}
         <div class="result" style:--tier={tierVarValue} aria-live="polite">
           <div class="chip"><span class="num" class:pop={scoreLanded}>{displayScore}</span></div>
@@ -330,13 +325,13 @@
 
   <footer class="footer">
     <button class="btn-primary primary-action" onclick={advancePrimary}>{primaryLabel}</button>
-    {#if phase === 'reveal'}
+    {#if game.phase === 'reveal'}
       <p class="spin-hint">↻ Gire a roleta para embaralhar — ou toque acima.</p>
     {/if}
     <details class="dev" bind:open={devOpen}>
       <summary>dev</summary>
       <div class="dev-controls">
-        <Segmented options={states} value={phase} onChange={setState} ariaLabel="Pular para fase" />
+        <Segmented options={states} value={game.phase} onChange={setState} ariaLabel="Pular para fase" />
         <div class="segment small" role="group" aria-label="Tratamento visual">
           {#each Object.entries(treatments) as [id]}
             <button aria-pressed={treatment === id} onclick={() => setTreatment(id as Treatment)}>
