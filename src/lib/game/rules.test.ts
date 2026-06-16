@@ -45,3 +45,13 @@ describe('selos (faixas exaustivas, sem buraco/sobreposição)', () => {
     test(`${pct}% → ${expected}`, () => expect(selo(pct)).toBe(expected))
   }
 })
+
+import { isLastRound } from './rules'
+describe('fim de jogo', () => {
+  test('isLastRound true só na última rodada (0-based)', () => {
+    expect(isLastRound(7, 8)).toBe(true)
+    expect(isLastRound(6, 8)).toBe(false)
+    expect(isLastRound(0, 2)).toBe(false)
+    expect(isLastRound(1, 2)).toBe(true)
+  })
+})

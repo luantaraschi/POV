@@ -19,3 +19,5 @@ export function selo(pct: number): Selo {
   if (pct >= 25) return 'Pegando o ritmo'
   return 'Frequências diferentes'
 }
+
+export const isLastRound = (roundIndex: number, totalRounds: number) => roundIndex >= totalRounds - 1
