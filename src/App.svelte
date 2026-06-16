@@ -2,6 +2,7 @@
   import { game } from './lib/game/store.svelte'
   import Shell from './lib/ui/Shell.svelte'
   import Home from './lib/screens/Home.svelte'
+  import HowToPlay from './lib/screens/HowToPlay.svelte'
   import Setup from './lib/screens/Setup.svelte'
   import RoundIntro from './lib/screens/RoundIntro.svelte'
   import InRound from './lib/screens/InRound.svelte'
@@ -12,6 +13,7 @@
 
 <Shell {dim}>
   {#if game.screen === 'home'}<Home />
+  {:else if game.screen === 'howToPlay'}<HowToPlay />
   {:else if game.screen === 'setup'}<Setup />
   {:else if game.screen === 'roundIntro'}<RoundIntro />
   {:else if game.screen === 'inRound'}<InRound />

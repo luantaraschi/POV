@@ -44,6 +44,9 @@
     <!-- Primary CTA -->
     <button class="cta" onclick={handlePlay}>Jogar</button>
 
+    <!-- Secondary: tutorial link -->
+    <button class="how-link" onclick={() => game.openHowToPlay()}>Como jogar</button>
+
   </div>
 </div>
 
@@ -147,6 +150,45 @@
   .cta:focus-visible {
     outline: 3px solid var(--pov-mostarda);
     outline-offset: 3px;
+  }
+
+  /* ── Secondary "Como jogar" link-button ── */
+  .how-link {
+    /* reset */
+    appearance: none;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    /* sizing — ≥44px tap target with padding */
+    min-height: 44px;
+    padding: var(--sp-2) var(--sp-4);
+    /* type */
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: var(--fs-500);
+    color: var(--text-soft);
+    text-align: center;
+    letter-spacing: 0.01em;
+    /* subtle underline hint */
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 3px;
+    transition: color 120ms ease, text-decoration-color 120ms ease;
+  }
+
+  .how-link:hover {
+    color: var(--text);
+    text-decoration-color: currentColor;
+  }
+
+  .how-link:active {
+    color: var(--pov-menta);
+  }
+
+  .how-link:focus-visible {
+    outline: 3px solid var(--pov-mostarda);
+    outline-offset: 3px;
+    border-radius: var(--r-1);
   }
 
   /* ── Desktop bump (≥900px) ── */
