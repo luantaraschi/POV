@@ -38,6 +38,8 @@
     <!-- Identity block: logo + tagline -->
     <div class="id-block">
       <Logo size="46px" />
+      <!-- h1 is sr-only: the Logo is the visual heading for this screen -->
+      <h1 class="sr-only">POV</h1>
       <p class="tagline">Acerte o ponto de vista dos seus amigos.</p>
     </div>
 
@@ -189,6 +191,19 @@
     outline: 3px solid var(--pov-mostarda);
     outline-offset: 3px;
     border-radius: var(--r-1);
+  }
+
+  /* ── Accessibility: visually hidden ── */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
   }
 
   /* ── Desktop bump (≥900px) ── */

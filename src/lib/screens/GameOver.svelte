@@ -90,8 +90,8 @@
 <!-- Scrim: radial veil over the sunburst so text stays readable -->
 <div class="scrim" aria-hidden="true"></div>
 
-<!-- Main content -->
-<main class="poster">
+<!-- Main content (Shell provides <main>; use div to avoid nesting) -->
+<div class="poster">
   <!-- Eyebrow -->
   <p class="eyebrow" aria-hidden="true">Fim de jogo</p>
 
@@ -116,7 +116,7 @@
 
   <!-- Seal name + subtitle -->
   <div class="seal-block">
-    <p class="seal-name">{game.selo}</p>
+    <h1 class="seal-name">{game.selo}</h1>
     <p class="seal-sub">
       {pct}% de sintonia
       · {game.config.players.length} jogadores
@@ -140,7 +140,7 @@
       ⚡ Mais afiados quando <strong>{highlightPlayer()}</strong> deu as dicas
     </p>
   {/if}
-</main>
+</div>
 
 <!-- Footer CTAs -->
 <footer class="cta-footer">

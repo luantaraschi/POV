@@ -269,8 +269,8 @@
   .back-btn {
     display: grid;
     place-items: center;
-    width: 38px;
-    height: 38px;
+    width: 44px;
+    height: 44px;
     border-radius: var(--r-2);
     background: var(--icon-bg);
     border: 1px solid var(--icon-border);
@@ -441,6 +441,7 @@
   }
 
   /* ─── Remove button ─────────────────────────────────────────────────────── */
+  /* visual size stays 28px; padding expands the hit area to ≥44px */
   .remove-btn {
     display: grid;
     place-items: center;
@@ -455,7 +456,9 @@
     cursor: pointer;
     flex: none;
     transition: color 0.1s ease, transform 0.08s ease;
-    padding: 0;
+    padding: 8px;
+    margin: -8px;
+    box-sizing: content-box;
   }
   .remove-btn:hover { color: rgba(255, 255, 255, 0.7); }
   .remove-btn:active { transform: scale(0.9); }

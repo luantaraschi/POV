@@ -25,6 +25,8 @@
 </script>
 
 <!-- Mobile: stacked column. Desktop (≥900px): Console with 2-column grid. -->
+<!-- sr-only h1: screen title for assistive tech -->
+<h1 class="sr-only">Introdução da rodada {game.roundIndex + 1}</h1>
 
 <!-- MOBILE layout -->
 <div class="mobile-wrap" aria-hidden="false">
@@ -142,6 +144,19 @@
 />
 
 <style>
+  /* ── Accessibility: visually hidden ── */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
   /* ─── Visibility: one layout visible per breakpoint ─── */
   .mobile-wrap {
     display: flex;

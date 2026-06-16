@@ -202,7 +202,11 @@
   })
 </script>
 
-<main class="stage">
+<!-- sr-only screen heading for assistive tech -->
+<h1 class="sr-only">Rodada em andamento</h1>
+
+<!-- Shell already provides the <main> landmark; use a <div> here to avoid nesting -->
+<div class="stage" role="region" aria-label="Medidor de rodada">
     <Console>
       <div class="screen">
         <Meter
@@ -248,7 +252,7 @@
     {:else}
       <p class="hint">{hint}</p>
     {/if}
-  </main>
+  </div>
 
   <footer class="footer">
     <button class="btn-primary primary-action" onclick={advancePrimary}>{primaryLabel}</button>
@@ -556,7 +560,10 @@
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .toast {
+    .toast,
+    .hint.suspense,
+    .result,
+    .chip .num.pop {
       animation: none;
     }
   }

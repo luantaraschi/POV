@@ -80,7 +80,7 @@
     border: 0;
     background: transparent;
     cursor: pointer;
-    min-height: 40px;
+    min-height: 44px;
     padding: var(--sp-1) var(--sp-3);
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 600;

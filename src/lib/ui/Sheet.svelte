@@ -44,7 +44,7 @@
   .scrim { position: fixed; inset: 0; z-index: 20; background: rgba(7,13,28,.6); backdrop-filter: blur(4px); display: grid; }
   .scrim.modal { place-items: center; padding: var(--sp-5); }
   .scrim.sheet { align-items: end; }
-  .dialog { background: linear-gradient(180deg, var(--console-top), var(--console-bot)); color: var(--text); box-shadow: var(--elev-3); }
+  .dialog { background: linear-gradient(180deg, var(--console-top), var(--console-bot)); color: var(--text); box-shadow: var(--elev-3); overscroll-behavior: contain; }
   .dialog.modal { width: min(380px, 92vw); border-radius: var(--r-5); padding: var(--sp-5); }
   .dialog.sheet { width: 100%; border-radius: var(--r-5) var(--r-5) 0 0; padding: var(--sp-3) var(--sp-5) max(var(--sp-5), env(safe-area-inset-bottom)); }
   .grip { width: 40px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.22); margin: 0 auto var(--sp-3); }

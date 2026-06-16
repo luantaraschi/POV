@@ -59,6 +59,9 @@
 </script>
 
 {#if last}
+  <!-- sr-only heading for this screen -->
+  <h1 class="sr-only">Placar — Rodada {game.roundIndex + 1}</h1>
+
   <!-- Live region: single consolidated a11y announcement -->
   <div
     class="sr-only"
@@ -223,7 +226,7 @@
 {/if}
 
 <style>
-  /* ── Screen-reader only ── */
+  /* ── Screen-reader only (includes h1 heading for the screen) ── */
   .sr-only {
     position: absolute;
     width: 1px;
