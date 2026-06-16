@@ -1,30 +1,16 @@
 <script lang="ts">
   import Meter, { type MeterState } from '../meter/Meter.svelte'
   import Card from '../cards/Card.svelte'
-  import Background from '../ui/Background.svelte'
   import Console from '../ui/Console.svelte'
-  import TopBar from '../ui/TopBar.svelte'
   import { scoreFor, stepIndex } from '../meter/geometry'
   import { treatments, palette, type Treatment } from '../design/tokens'
-  import { setSoundEnabled, unlockAudio, press, dock, scoreSting, celebrate, tick, thunk } from '../audio/clicks'
+  import { unlockAudio, press, dock, scoreSting, celebrate, tick, thunk } from '../audio/clicks'
   import Segmented from '../ui/Segmented.svelte'
   import PrivacyHandoff from '../ui/PrivacyHandoff.svelte'
   import { tierCopy, tierVar } from '../game/scoring'
   import { game } from '../game/store.svelte'
 
-  type Theme = 'dark' | 'light'
-  function initTheme(): Theme {
-    if (typeof localStorage !== 'undefined') {
-      const saved = localStorage.getItem('pov-theme')
-      if (saved === 'dark' || saved === 'light') return saved
-    }
-    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: light)').matches) return 'light'
-    return 'dark'
-  }
-
-  let theme = $state<Theme>(initTheme())
   let treatment = $state<Treatment>('hibrido')
-  let sound = $state(true)
   let showPrivacy = $state(false) // interstício "passe o aparelho" antes de o Dono ver o alvo
   let devOpen = $state(false) // gaveta de controles de desenvolvimento (pular fases / tratamento)
   let lockGestures = $state(false) // modo teste: gestos mexem as peças mas NÃO avançam de fase
@@ -36,10 +22,6 @@
     clearTimeout(toastTimer)
     toastTimer = setTimeout(() => (toast = ''), 2200)
   }
-
-  $effect(() => {
-    if (typeof localStorage !== 'undefined') localStorage.setItem('pov-theme', theme)
-  })
 
   // Ondas de frequência (a identidade "sintonia") — substitui a linha pontilhada.
   function wavePath(w: number, midY: number, amp: number, len: number, phase: number): string {
@@ -98,16 +80,6 @@
       flashToast('Palpites liberados — arraste o ponteiro.')
     }
   }
-  function toggleSound() {
-    sound = !sound
-    setSoundEnabled(sound)
-    press() // se acabou de mutar, sai mudo (mas o haptic ainda confirma)
-  }
-  function toggleTheme() {
-    unlockAudio()
-    press()
-    theme = theme === 'dark' ? 'light' : 'dark'
-  }
   function setTreatment(id: Treatment) {
     unlockAudio()
     press()
@@ -156,13 +128,6 @@
     const ci = game.cardIndex
     if (prevCardIndex !== undefined && ci !== prevCardIndex) dock()
     prevCardIndex = ci
-  })
-
-  // theme-color do chrome do navegador acompanha o tema ativo
-  $effect(() => {
-    if (typeof document === 'undefined') return
-    const m = document.querySelector('meta[name="theme-color"]')
-    if (m) m.setAttribute('content', theme === 'dark' ? '#0c1d3b' : '#f3e7d2')
   })
 
   const hint = $derived(
@@ -257,8 +222,6 @@
     { r: 84, c: palette.coral },
     { r: 102, c: palette.lilas },
   ]
-  // suspense: enquanto a tampa abre (antes do resultado), o fundo escurece e foca no medidor
-  const revealDim = $derived(game.phase === 'reveal' && !showResult && !reduce)
   const confettiDots = Array.from({ length: 16 }, (_, i) => {
     const ang = (i / 16) * Math.PI * 2
     return {
@@ -271,12 +234,7 @@
   })
 </script>
 
-<div class="scene" class:theme-dark={theme === 'dark'} class:theme-light={theme === 'light'}>
-  <Background {theme} dim={revealDim} />
-
-  <TopBar {theme} {sound} onToggleTheme={toggleTheme} onToggleSound={toggleSound} />
-
-  <main class="stage">
+<main class="stage">
     <Console>
       <div class="screen">
         <Meter
@@ -284,7 +242,7 @@
           bind:value={game.value}
           phase={game.phase}
           {treatment}
-          light={theme === 'light'}
+          light={game.theme === 'light'}
           {roundSeed}
           scaleLeft={game.card.left}
           scaleRight={game.card.right}
@@ -365,19 +323,8 @@
   {/if}
 
   <PrivacyHandoff open={showPrivacy} onConfirm={confirmPrivacy} onCancel={cancelPrivacy} />
-</div>
 
 <style>
-  .scene {
-    position: relative;
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: var(--bg-base);
-    color: var(--text);
-    transition: background 0.3s ease;
-  }
   /* ---- STAGE ---- */
   .stage {
     position: relative;
