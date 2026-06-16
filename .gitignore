@@ -1,0 +1,12 @@
+# dependências
+node_modules/
+
+# build
+dist/
+
+# companion de brainstorm (mockups persistidos localmente, fora do versionamento)
+.superpowers/
+
+# locais
+*.local
+.DS_Store

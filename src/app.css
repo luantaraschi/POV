@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..48,600;12..48,700;12..48,800&family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,500;1,9..144,600&display=swap');
+
+:root {
+  /* ---- PALETA (dusty-saturada, identidade Sintonia) ---- */
+  --pov-night: #16294e;
+  --pov-petroleo: #1b5a72;
+  --pov-piscina: #4ea7c4;
+  --pov-creme: #f1e6cb;
+  --pov-offwhite: #f7f1e3;
+  --pov-coral: #e25744;
+  --pov-coral-cta: #c8412f; /* coral mais escuro p/ o botão primário: branco atinge ~4.9:1 (WCAG AA) */
+  --pov-mostarda: #e8b24a;
+  --pov-laranja: #e57a37;
+  --pov-menta: #93cfa9;
+  --pov-rosa: #e7aebf;
+  --pov-lilas: #b3a0dd;
+  --pov-black: #0a1320;
+
+  /* tons de material/cena */
+  --pov-coral-hi: #ff7d63;
+  --pov-coral-lo: #a8302a;
+  --pov-coral-skirt: #7d1f1b;
+  --pov-cream-hi: #fbf5e6;
+  --pov-cream-lo: #ddceac;
+  --pov-bullseye: #1f6f8b;
+  --pov-near: #e8b24a;
+  --pov-far: #e57a37;
+  --pov-console: #1a3358;
+  --pov-console-lo: #102240;
+  --pov-brass: #cda253;
+
+  --shadow-hue: 222; /* sombras com tinta azul-noite, nunca preto puro */
+
+  /* ---- TIPOGRAFIA (escala modular 1.25) ---- */
+  --fs-300: 0.75rem;
+  --fs-400: 0.875rem;
+  --fs-500: 1rem;
+  --fs-600: 1.1875rem;
+  --fs-700: 1.5rem;
+  --fs-800: 2rem;
+  --fs-900: 2.75rem;
+  --fs-1000: clamp(2.75rem, 11vw, 4.25rem);
+  --lh-tight: 1.1;
+  --lh-body: 1.55;
+  --tracking-caps: 0.08em;
+
+  /* ---- ESPAÇAMENTO (8pt) ---- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 40px;
+  --sp-8: 64px;
+
+  /* ---- RAIO ---- */
+  --r-1: 6px;
+  --r-2: 10px;
+  --r-3: 14px;
+  --r-4: 20px;
+  --r-5: 28px;
+
+  /* ---- ELEVAÇÃO (sombras em camadas, tinta navy, luz de cima) ---- */
+  --elev-1:
+    0 1px 1px hsl(var(--shadow-hue) 40% 8% / 0.1),
+    0 2px 4px hsl(var(--shadow-hue) 40% 8% / 0.1),
+    0 6px 10px hsl(var(--shadow-hue) 40% 8% / 0.12);
+  --elev-2:
+    0 1px 1px hsl(var(--shadow-hue) 40% 8% / 0.12),
+    0 3px 6px hsl(var(--shadow-hue) 40% 8% / 0.14),
+    0 10px 20px hsl(var(--shadow-hue) 40% 8% / 0.18);
+  --elev-3:
+    0 2px 2px hsl(var(--shadow-hue) 45% 6% / 0.16),
+    0 8px 16px hsl(var(--shadow-hue) 45% 6% / 0.22),
+    0 24px 44px -10px hsl(var(--shadow-hue) 45% 6% / 0.5);
+
+  --bevel-cream:
+    inset 0 1px 0 var(--pov-cream-hi),
+    inset 0 -3px 6px hsl(38 30% 55% / 0.35);
+  --bevel-dark:
+    inset 0 1px 0 hsl(210 40% 60% / 0.25),
+    inset 0 -8px 16px hsl(var(--shadow-hue) 50% 4% / 0.45);
+  --inset-well:
+    inset 0 3px 8px hsl(var(--shadow-hue) 50% 4% / 0.55),
+    inset 0 -1px 0 hsl(210 40% 60% / 0.12);
+
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  color: var(--pov-offwhite);
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-optical-sizing: auto;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--pov-black);
+}
+
+#app {
+  min-height: 100dvh;
+}
+
+h1,
+h2,
+h3,
+.display {
+  font-family: 'Bricolage Grotesque', 'Space Grotesk', sans-serif;
+  font-optical-sizing: auto;
+  line-height: var(--lh-tight);
+}
+
+button {
+  font-family: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
