@@ -49,6 +49,7 @@
     onDiscSpin?: () => void // gesto físico: jogador girou o disco na revelação -> nova rodada
     showTarget?: boolean // revela o marcador do alvo + arco (sincronizado ao resultado na tela)
     lockGestures?: boolean // modo teste: peças se mexem livremente, mas NÃO disparam nova rodada
+    decorative?: boolean // modo VITRINE: dial inerte (sem ponteiro/teclado/som, oculto ao leitor de tela)
   }
 
   let {
@@ -64,6 +65,7 @@
     onDiscSpin,
     showTarget = false,
     lockGestures = false,
+    decorative = false,
   }: Props = $props()
 
   const t = $derived(treatments[treatment])
@@ -128,6 +130,7 @@
     return pAtPoint(sp.x, sp.y)
   }
   function needleApply(e: PointerEvent) {
+    if (decorative) return
     const p = toSvgP(e)
     if (p == null) return
     const idx = stepIndex(p)
@@ -142,6 +145,7 @@
     }
   }
   function needleDown(e: PointerEvent) {
+    if (decorative) return
     unlockAudio()
     dragging = true
     lastIdx = stepIndex(value)
@@ -152,6 +156,7 @@
 
   // teclado: o medidor é um role="slider" — precisa ser operável sem ponteiro (WCAG 2.1.1)
   function onKeyDown(e: KeyboardEvent) {
+    if (decorative) return
     if (interactive) {
       let idx = stepIndex(value)
       if (e.key === 'ArrowRight' || e.key === 'ArrowUp') idx = Math.min(STEPS, idx + 1)
@@ -458,6 +463,7 @@
   }
 
   function coverDown(e: PointerEvent) {
+    if (decorative) return
     unlockAudio()
     coverDragging = true
     const rect = svgEl.getBoundingClientRect()
@@ -511,6 +517,7 @@
 
   // ===== arraste do DISCO (revelação): gira a roleta e, passando do limiar, começa a próxima rodada =====
   function discDown(e: PointerEvent) {
+    if (decorative) return
     unlockAudio()
     discDragging = true
     const rect = svgEl.getBoundingClientRect()
@@ -557,16 +564,19 @@
 
   // ===== roteamento: cobertura (hidden/peek) > agulha (guessing) > disco (reveal) =====
   function onPointerDown(e: PointerEvent) {
+    if (decorative) return
     if (coverDraggable) coverDown(e)
     else if (interactive) needleDown(e)
     else if (discDraggable) discDown(e)
   }
   function onPointerMove(e: PointerEvent) {
+    if (decorative) return
     if (coverDragging) coverMove(e)
     else if (dragging) needleApply(e)
     else if (discDragging) discMove(e)
   }
   function onPointerUp(e: PointerEvent) {
+    if (decorative) return
     if (coverDragging) {
       coverUp()
       svgEl.releasePointerCapture?.(e.pointerId)
@@ -608,7 +618,7 @@
     const rs = roundSeed
     if (prevSeed !== undefined && rs !== prevSeed) {
       if (suppressAutoSpin) suppressAutoSpin = false
-      else startSpin()
+      else if (!decorative) startSpin() // decorativo: sem giro/som ao trocar de rodada
     }
     prevSeed = rs
   })
@@ -622,8 +632,8 @@
     const want = wantOpen ? 0 : 1
     // se o usuário JÁ moveu a tampa na mão até a posição da nova fase, não re-anima nem re-toca som
     const coverWillMove = Math.abs(coverPos - want) > 0.02
-    // sons: disparam na troca de fase, independem do arraste
-    if (prevState !== undefined && s !== prevState) {
+    // sons: disparam na troca de fase, independem do arraste (mudos no modo decorativo)
+    if (!decorative && prevState !== undefined && s !== prevState) {
       const wasOpen = prevState === 'peek' || prevState === 'reveal'
       if (wasOpen !== wantOpen && coverWillMove) slide()
       if (s === 'reveal') soundReveal()
@@ -631,27 +641,33 @@
     prevState = s
     // alvo da cobertura: só fora do arraste e só se ela REALMENTE precisa se mover.
     if (!coverDragging && s !== coverPhase) {
-      if (coverWillMove) startAuto(want) // automático suave (não é o usuário puxando)
+      // decorativo: encaixa direto (sem tween/thunk); interativo: tween suave automático
+      if (coverWillMove) decorative ? (coverPos = want) : startAuto(want)
       coverPhase = s
     }
   })
 </script>
 
+<!-- tabindex e role=slider são ligados ao MESMO flag `decorative`: o SVG só é focável quando
+     também é role=slider (interativo). No modo decorativo ambos somem juntos (aria-hidden). O
+     analisador estático não correlaciona os dois ternários -> falso positivo de tabindex. -->
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <svg
   bind:this={svgEl}
   class="meter"
-  class:grab={interactive || coverDraggable || discDraggable}
-  class:grabbing={dragging || coverDragging || discDragging}
+  class:grab={!decorative && (interactive || coverDraggable || discDraggable)}
+  class:grabbing={!decorative && (dragging || coverDragging || discDragging)}
   viewBox="0 0 {VIEW_W} {VIEW_H}"
-  role="slider"
-  tabindex="0"
-  aria-label={ariaLabel}
-  aria-valuemin="0"
-  aria-valuemax="100"
-  aria-valuenow={Math.round(value)}
-  aria-valuetext={valueText}
+  role={decorative ? undefined : 'slider'}
+  tabindex={decorative ? undefined : 0}
+  aria-hidden={decorative ? true : undefined}
+  aria-label={decorative ? undefined : ariaLabel}
+  aria-valuemin={decorative ? undefined : 0}
+  aria-valuemax={decorative ? undefined : 100}
+  aria-valuenow={decorative ? undefined : Math.round(value)}
+  aria-valuetext={decorative ? undefined : valueText}
   style:--pivot={pivot}
-  style:touch-action={interactive || coverDraggable || discDraggable ? 'none' : 'auto'}
+  style:touch-action={!decorative && (interactive || coverDraggable || discDraggable) ? 'none' : 'auto'}
   onpointerdown={onPointerDown}
   onpointermove={onPointerMove}
   onpointerup={onPointerUp}
