@@ -509,58 +509,6 @@
 </div>
 
 <style>
-  /* ---- temas ---- */
-  .theme-dark {
-    --bg-base: #0c1d3b;
-    --console-top: #1e3c66;
-    --console-bot: #0f2447;
-    --console-skirt: #0a1830;
-    --console-edge: rgba(255, 255, 255, 0.14);
-    --console-slot: rgba(7, 16, 33, 0.5);
-    --tray-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.6);
-    --text: #f3ece0;
-    --text-soft: rgba(243, 236, 224, 0.72);
-    --header-grad: rgba(8, 16, 33, 0.82);
-    --footer-grad: rgba(7, 13, 28, 0.92);
-    --ctrl-track: rgba(255, 255, 255, 0.06);
-    --ctrl-border: rgba(255, 255, 255, 0.09);
-    --ctrl-fg: rgba(243, 236, 224, 0.72);
-    --ctrl-active-bg: var(--pov-creme);
-    --ctrl-active-fg: #11233f;
-    --icon-bg: rgba(255, 255, 255, 0.07);
-    --icon-border: rgba(255, 255, 255, 0.1);
-    --ripple-op: 0.55;
-    --result-bg: rgba(12, 29, 59, 0.85);
-    --result-border: rgba(255, 255, 255, 0.1);
-    --dock-bg: rgba(7, 16, 33, 0.32);
-    --sun-op: 0.36;
-  }
-  .theme-light {
-    --bg-base: #f3e7d2;
-    --console-top: #356099;
-    --console-bot: #244b76;
-    --console-skirt: #173453;
-    --console-edge: rgba(255, 255, 255, 0.34);
-    --console-slot: rgba(10, 24, 48, 0.4);
-    --tray-shadow: 0 20px 46px -22px rgba(40, 28, 60, 0.4);
-    --text: #1b2a4a;
-    --text-soft: rgba(27, 42, 74, 0.78);
-    --header-grad: rgba(243, 231, 210, 0.82);
-    --footer-grad: rgba(243, 231, 210, 0.92);
-    --ctrl-track: rgba(27, 42, 74, 0.09);
-    --ctrl-border: rgba(27, 42, 74, 0.1);
-    --ctrl-fg: rgba(27, 42, 74, 0.72);
-    --ctrl-active-bg: #1b2a4a;
-    --ctrl-active-fg: var(--pov-creme);
-    --icon-bg: rgba(27, 42, 74, 0.08);
-    --icon-border: rgba(27, 42, 74, 0.14);
-    --ripple-op: 0.5;
-    --result-bg: rgba(248, 242, 228, 0.92);
-    --result-border: rgba(27, 42, 74, 0.12);
-    --dock-bg: rgba(27, 42, 74, 0.06);
-    --sun-op: 0.46;
-  }
-
   .scene {
     position: relative;
     min-height: 100dvh;
