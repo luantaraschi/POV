@@ -213,16 +213,18 @@
                 </div>
               </div>
 
-              <!-- CTA (desktop only — mobile lives in sticky footer) -->
-              <button
-                class="cta cta--desktop"
-                disabled={!canStart}
-                onclick={startGame}
-              >
-                Começar partida · {players.length} jogadores
-              </button>
-
             </div>
+          </div>
+
+          <!-- CTA (desktop only — mobile lives in sticky footer) -->
+          <div class="cta-desktop-wrap">
+            <button
+              class="cta cta--desktop"
+              disabled={!canStart}
+              onclick={startGame}
+            >
+              Começar partida · {players.length} jogadores
+            </button>
           </div>
 
         </div>
@@ -573,6 +575,7 @@
 
   /* ─── Desktop CTA (hidden on mobile) ────────────────────────────────────── */
   .cta--desktop { display: none; }
+  .cta-desktop-wrap { display: none; }
 
   /* ─── CTA shared styles ─────────────────────────────────────────────────── */
   .cta {
@@ -662,7 +665,7 @@
 
     .setup-scroll {
       width: 100%;
-      max-width: 860px;
+      max-width: 960px;
       overflow-y: visible;
       padding: 0;
     }
@@ -671,12 +674,12 @@
     .console-header { display: block; }
 
     /* Console fills the centred wrap so the 2-col grid has room.
-       (Base Console is min(720px,96vw); Setup needs the full 860px wrap.) */
+       (Base Console is min(720px,96vw); Setup needs the full 960px wrap.) */
     .console-wrap :global(.console) {
       width: 100%;
     }
 
-    /* Desktop grid: players on left (wider), options+CTA on right.
+    /* Desktop grid: players on left (wider), options on right — no CTA here.
        minmax(0, …) lets tracks shrink below their content min-width, so the
        options column can't be pushed outside the Console's clip box. */
     .desktop-grid {
@@ -704,11 +707,24 @@
       grid-column: 1 / -1;
     }
 
-    /* Show desktop CTA, hide mobile */
+    /* Wrapper: thin separator line above so the CTA reads as a distinct action tier */
+    .cta-desktop-wrap {
+      display: block;
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
+      padding-top: var(--sp-5);
+    }
+
+    /* Show desktop CTA: full-width, centered, prominent — spans below both cols */
     .cta--desktop {
       display: block;
-      min-height: 48px;
-      font-size: var(--fs-500);
+      width: 100%;
+      min-height: 56px;
+      font-size: var(--fs-600);
+    }
+
+    /* console-inner gap already provides vertical rhythm; add a touch more on desktop */
+    .console-inner {
+      gap: var(--sp-6);
     }
   }
 
