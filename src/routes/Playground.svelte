@@ -3,6 +3,7 @@
   import Card from '../lib/cards/Card.svelte'
   import Background from '../lib/ui/Background.svelte'
   import Console from '../lib/ui/Console.svelte'
+  import Logo from '../lib/ui/Logo.svelte'
   import { STEPS, STEP_P, scoreFor, stepIndex } from '../lib/meter/geometry'
   import { treatments, palette, type Treatment } from '../lib/design/tokens'
   import { setSoundEnabled, unlockAudio, press, dock, scoreSting, celebrate, tick, thunk } from '../lib/audio/clicks'
@@ -279,17 +280,7 @@
   <Background {theme} dim={revealDim} />
 
   <header class="topbar">
-    <div class="logo">
-      <span>P</span>
-      <svg class="logo-o" viewBox="0 0 40 40" aria-hidden="true">
-        <circle cx="20" cy="22" r="15" fill="none" stroke="var(--pov-coral)" stroke-width="4" />
-        <path d="M7 22 A13 13 0 0 1 33 22" fill="none" stroke="var(--pov-bullseye)" stroke-width="3" />
-        <line x1="20" y1="22" x2="27" y2="11" stroke="var(--pov-coral)" stroke-width="2.5" stroke-linecap="round" />
-        <circle cx="20" cy="22" r="3.4" fill="var(--pov-mostarda)" />
-        <path d="M31 7 L32 10 L35 11 L32 12 L31 15 L30 12 L27 11 L30 10 Z" fill="var(--pov-piscina)" />
-      </svg>
-      <span>V</span>
-    </div>
+    <Logo />
 
     <div class="top-actions">
       <button class="iconbtn" onclick={toggleTheme} aria-label={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}>
@@ -456,21 +447,6 @@
       max(var(--sp-5), env(safe-area-inset-left));
     background: linear-gradient(180deg, var(--header-grad), transparent);
     backdrop-filter: blur(3px);
-  }
-  .logo {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    font-family: 'Bricolage Grotesque', sans-serif;
-    font-weight: 700;
-    font-size: 30px;
-    letter-spacing: 0.06em;
-    color: var(--text);
-  }
-  .logo-o {
-    width: 30px;
-    height: 30px;
-    margin: 0 1px;
   }
   .top-actions {
     display: flex;
