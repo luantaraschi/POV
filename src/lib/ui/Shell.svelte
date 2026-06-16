@@ -9,7 +9,7 @@
   let showPause = $state(false)
   let showSettings = $state(false)
 
-  const inGameScreens: typeof game.screen[] = ['roundIntro', 'inRound', 'scoreboard']
+  const inGameScreens: typeof game.screen[] = ['inRound']
 
   // theme-color do chrome do navegador acompanha o tema ativo (movido do InRound)
   $effect(() => {

@@ -3,7 +3,7 @@ import { donoIndexFor, totalRounds, maxPossibleTotal, maxPossibleSoFar, sintonia
 import { setSoundEnabled, setHapticsEnabled } from '../audio/clicks'
 import type { MeterState } from '../meter/Meter.svelte'
 
-export type Screen = 'home' | 'howToPlay' | 'setup' | 'roundIntro' | 'inRound' | 'scoreboard' | 'gameOver'
+export type Screen = 'home' | 'howToPlay' | 'setup' | 'inRound' | 'gameOver'
 export type PlayerColor = 'coral' | 'piscina' | 'lilas' | 'menta' | 'mostarda' | 'rosa' | 'laranja' | 'petroleo'
 export type Player = { id: string; name: string; color: PlayerColor }
 export type RoundResult = { donoId: string; cardIndex: number; target: number; value: number; score: 0 | 2 | 3 | 4 }
@@ -76,18 +76,19 @@ function makeStore() {
       config = { players, voltas, deck }
       roundIndex = 0; results = []
       target = drawTarget(); value = 12 * STEP_P; cardIndex = 0; phase = 'hidden'
-      screen = 'roundIntro'
+      // a primeira rodada já começa NO medidor; o overlay de privacidade aparece pq phase='hidden'
+      screen = 'inRound'
     },
     beginPeek() { phase = 'peek'; screen = 'inRound' },
-    toScoreboard() { screen = 'scoreboard' },
-    advance() {
+    // revelação concluída -> próxima rodada NO MESMO medidor (ou fim de jogo na última)
+    advanceFromReveal() {
       if (isLastRound(roundIndex, this.totalRounds)) { screen = 'gameOver' }
-      else { this.nextRound(); screen = 'roundIntro' }
+      else { this.nextRound() } // nextRound já faz roundIndex++, novo alvo/carta, value reset, phase='hidden'; screen continua 'inRound'
     },
     changePlayers() { screen = 'setup' },
     recordRound(score: 0 | 2 | 3 | 4) { results.push({ donoId: this.dono.id, cardIndex, target, value, score }) },
     nextRound() { roundIndex++; target = drawTarget(); value = 12 * STEP_P; cardIndex++; phase = 'hidden' },
-    playAgain() { roundIndex = 0; results = []; target = drawTarget(); value = 12 * STEP_P; cardIndex = 0; phase = 'hidden'; screen = 'roundIntro' },
+    playAgain() { roundIndex = 0; results = []; target = drawTarget(); value = 12 * STEP_P; cardIndex = 0; phase = 'hidden'; screen = 'inRound' },
   }
 }
 export const game = makeStore()

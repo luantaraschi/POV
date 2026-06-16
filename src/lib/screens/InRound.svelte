@@ -2,12 +2,21 @@
   import Meter, { type MeterState } from '../meter/Meter.svelte'
   import Card from '../cards/Card.svelte'
   import Console from '../ui/Console.svelte'
+  import PrivacyHandoff from '../ui/PrivacyHandoff.svelte'
   import { scoreFor, stepIndex } from '../meter/geometry'
   import { treatments, palette, type Treatment } from '../design/tokens'
   import { unlockAudio, press, dock, scoreSting, celebrate, tick, thunk } from '../audio/clicks'
   import Segmented from '../ui/Segmented.svelte'
+  import { isLastRound } from '../game/rules'
   import { tierCopy, tierVar } from '../game/scoring'
   import { game } from '../game/store.svelte'
+
+  // overlay de privacidade (passar o aparelho ao Dono) — vive aqui, no medidor
+  let showHandoff = $state(false)
+  // abre automaticamente sempre que entramos numa fase 'hidden' (início de cada rodada)
+  $effect(() => {
+    if (game.screen === 'inRound' && game.phase === 'hidden') showHandoff = true
+  })
 
   let treatment = $state<Treatment>('hibrido')
   let devOpen = $state(false) // gaveta de controles de desenvolvimento (pular fases / tratamento)
@@ -51,12 +60,13 @@
     game.phase = s
   }
   // gesto físico: jogador agarrou e GIROU o disco na revelação (o giro/som rodam no Meter)
-  // atalho redundante do botão "Ver placar" — leva ao placar, não reinicia rodada
+  // -> começa a PRÓXIMA rodada NO MESMO medidor (reembaralha) — sem tela de placar
   function handleDiscSpin() {
     if (lockGestures) return // modo teste: só gira, não avança
-    game.toScoreboard()
+    game.advanceFromReveal()
   }
   // gesto físico: a tampa assentou fechada (Dono memorizou o alvo) -> libera os palpites
+  // (abrir em 'hidden' não muda mais de fase — o Dono espia só DEPOIS de confirmar o hand-off)
   function handleCoverSettle(open: boolean) {
     if (lockGestures) return // modo teste: abre/fecha livre, sem mudar de fase
     if (!open && game.phase === 'peek') {
@@ -70,15 +80,21 @@
     treatment = id
   }
 
-  // ---- fluxo guiado da rodada: uma única ação primária por fase ----
+  // ---- fluxo guiado da rodada: uma única ação primária por fase (tudo no medidor) ----
+  const isLast = $derived(isLastRound(game.roundIndex, game.totalRounds))
   const primaryLabel = $derived(
-    game.phase === 'peek' ? 'Já memorizei — esconder'
+    game.phase === 'hidden' ? `Passar o POV pra ${game.dono.name}`
+    : game.phase === 'peek' ? 'Já memorizei — esconder'
     : game.phase === 'guessing' ? 'Travar palpite'
-    : 'Ver placar',
+    : isLast ? 'Ver resultado' // reveal, última rodada
+    : 'Próxima rodada', // reveal, fallback p/ teclado/reduced-motion (gesto é girar o disco)
   )
   function advancePrimary() {
     unlockAudio()
-    if (game.phase === 'peek') {
+    if (game.phase === 'hidden') {
+      press()
+      showHandoff = true // reabre o hand-off se foi dispensado
+    } else if (game.phase === 'peek') {
       press()
       game.phase = 'guessing'
     } else if (game.phase === 'guessing') {
@@ -87,7 +103,7 @@
       game.phase = 'reveal'
     } else {
       press()
-      game.toScoreboard() // revelação concluída -> entrega o placar (a loja inicia a próxima rodada)
+      game.advanceFromReveal() // revelação concluída -> próxima rodada no medidor (ou gameOver na última)
     }
   }
 
@@ -100,7 +116,8 @@
   })
 
   const hint = $derived(
-    game.phase === 'peek' ? 'Memorize o alvo e feche o medidor para liberar os palpites.'
+    game.phase === 'hidden' ? `Passe o POV pra ${game.dono.name} — só ${game.dono.name} vê o alvo.`
+    : game.phase === 'peek' ? 'Memorize o alvo e feche o medidor para liberar os palpites.'
     : game.phase === 'guessing' ? 'Arraste o ponteiro — sinta as travas e os cliques.'
     : 'Revelação! Compare o ponteiro com o alvo.',
   )
@@ -207,6 +224,12 @@
 
 <!-- Shell already provides the <main> landmark; use a <div> here to avoid nesting -->
 <div class="stage" role="region" aria-label="Medidor de rodada">
+    <!-- indicador de rodada + sintonia acumulada (substitui o placar entre rodadas) -->
+    <p class="round-meta" aria-live="polite">
+      Rodada {game.roundIndex + 1} de {game.totalRounds}
+      <span class="round-meta-sep" aria-hidden="true">·</span>
+      Sintonia {game.groupScore} pts
+    </p>
     <Console>
       <div class="screen">
         <Meter
@@ -256,8 +279,8 @@
 
   <footer class="footer">
     <button class="btn-primary primary-action" onclick={advancePrimary}>{primaryLabel}</button>
-    {#if game.phase === 'reveal'}
-      <p class="spin-hint">↻ Gire a roleta ou toque em Ver placar.</p>
+    {#if game.phase === 'reveal' && !game.reduce}
+      <p class="spin-hint">↻ Gire o disco para a próxima rodada.</p>
     {/if}
     <details class="dev" bind:open={devOpen}>
       <summary>dev</summary>
@@ -294,6 +317,14 @@
   {#if toast}
     <div class="toast" role="status">{toast}</div>
   {/if}
+
+  <!-- hand-off de privacidade: passa o aparelho ao Dono antes de ele espiar o alvo -->
+  <PrivacyHandoff
+    open={showHandoff}
+    donoName={game.dono.name}
+    onConfirm={() => { showHandoff = false; game.beginPeek() }}
+    onCancel={() => (showHandoff = false)}
+  />
 
 <style>
   .sr-only {
@@ -335,6 +366,21 @@
     border-radius: var(--r-4);
     background: var(--dock-bg);
     box-shadow: var(--inset-well);
+  }
+  /* indicador de rodada + sintonia (visibilidade do placar, agora no medidor) */
+  .round-meta {
+    align-self: center;
+    margin: 0;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: var(--fs-300);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--text-soft);
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  .round-meta-sep {
+    margin: 0 0.4em;
+    opacity: 0.6;
   }
   .hint {
     align-self: flex-start;
