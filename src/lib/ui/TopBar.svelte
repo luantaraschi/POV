@@ -8,13 +8,14 @@
     onToggleTheme: () => void
     onToggleSound: () => void
     onMenu?: () => void
+    onHome?: () => void
   }
 
-  let { theme, sound, onToggleTheme, onToggleSound, onMenu }: Props = $props()
+  let { theme, sound, onToggleTheme, onToggleSound, onMenu, onHome }: Props = $props()
 </script>
 
 <header class="topbar">
-  <Logo />
+  <Logo onActivate={onHome ? () => { press(); onHome?.() } : undefined} />
 
   <div class="top-actions">
     {#if onMenu}

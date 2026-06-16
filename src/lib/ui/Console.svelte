@@ -21,6 +21,7 @@
   .console {
     position: relative;
     width: min(720px, 96vw);
+    margin-inline: auto;
     padding: var(--sp-4) var(--sp-4) calc(var(--sp-5) + 16px);
     border-radius: var(--r-5);
     background: linear-gradient(180deg, var(--console-top), var(--console-bot));

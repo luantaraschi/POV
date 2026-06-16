@@ -76,6 +76,11 @@
   .dial-wrap {
     width: 100%;
   }
+  /* Console follows the column width instead of its own min(720px,96vw),
+     so capping .hero-col actually shrinks the decorative dial. */
+  .dial-wrap :global(.console) {
+    width: 100%;
+  }
 
   /* ── Logo + tagline ── */
   .id-block {
@@ -209,10 +214,13 @@
   /* ── Desktop bump (≥900px) ── */
   @media (min-width: 900px) {
     .home {
-      padding: var(--sp-8) var(--sp-6);
+      /* trimmed vertical padding so the hero fits the viewport (no dead scroll) */
+      padding: var(--sp-5) var(--sp-6);
     }
     .hero-col {
-      gap: var(--sp-7);
+      gap: var(--sp-6);
+      /* cap so the decorative dial doesn't push content past 100dvh */
+      max-width: min(560px, 92vw);
     }
     .tagline {
       font-size: var(--fs-700);
@@ -222,6 +230,17 @@
       font-size: var(--fs-700);
       min-height: 60px;
       max-width: 400px;
+    }
+  }
+
+  /* On short desktops, keep everything inside the viewport */
+  @media (min-width: 900px) and (max-height: 820px) {
+    .home {
+      padding: var(--sp-4) var(--sp-6);
+    }
+    .hero-col {
+      gap: var(--sp-5);
+      max-width: min(480px, 88vw);
     }
   }
 </style>

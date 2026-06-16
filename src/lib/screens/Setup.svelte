@@ -670,18 +670,32 @@
     /* Console is visible on desktop */
     .console-header { display: block; }
 
-    /* Desktop grid: players on left (wider), options+CTA on right */
+    /* Console fills the centred wrap so the 2-col grid has room.
+       (Base Console is min(720px,96vw); Setup needs the full 860px wrap.) */
+    .console-wrap :global(.console) {
+      width: 100%;
+    }
+
+    /* Desktop grid: players on left (wider), options+CTA on right.
+       minmax(0, …) lets tracks shrink below their content min-width, so the
+       options column can't be pushed outside the Console's clip box. */
     .desktop-grid {
       display: grid;
-      grid-template-columns: 1.35fr 1fr;
+      grid-template-columns: minmax(0, 1.35fr) minmax(260px, 1fr);
       gap: var(--sp-6);
       align-items: start;
     }
 
-    /* Players grid → 2-column on desktop */
+    /* Grid columns must be allowed to shrink (default min-width:auto blows out) */
+    .col-players,
+    .col-options {
+      min-width: 0;
+    }
+
+    /* Players grid → 2-column on desktop; minmax(0,1fr) keeps it shrinkable */
     .players-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: var(--sp-2);
     }
 
