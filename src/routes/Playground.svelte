@@ -7,6 +7,7 @@
   import { STEPS, STEP_P, scoreFor, stepIndex } from '../lib/meter/geometry'
   import { treatments, palette, type Treatment } from '../lib/design/tokens'
   import { setSoundEnabled, unlockAudio, press, dock, scoreSting, celebrate, tick, thunk } from '../lib/audio/clicks'
+  import Segmented from '../lib/ui/Segmented.svelte'
   import { tierCopy, tierVar } from '../lib/game/scoring'
 
   type Theme = 'dark' | 'light'
@@ -66,8 +67,6 @@
     { id: 'guessing', label: 'Palpitar' },
     { id: 'reveal', label: 'Revelar' },
   ]
-  const stateIndex = $derived(Math.max(0, states.findIndex((s) => s.id === phase)))
-
   function setState(s: MeterState) {
     unlockAudio()
     press()
@@ -368,12 +367,7 @@
     <details class="dev" bind:open={devOpen}>
       <summary>dev</summary>
       <div class="dev-controls">
-        <div class="segment states" role="group" aria-label="Pular para fase" style:--count={states.length} style:--active={stateIndex}>
-          <span class="pill" aria-hidden="true"></span>
-          {#each states as s}
-            <button aria-pressed={phase === s.id} onclick={() => setState(s.id)}>{s.label}</button>
-          {/each}
-        </div>
+        <Segmented options={states} value={phase} onChange={setState} ariaLabel="Pular para fase" />
         <div class="segment small" role="group" aria-label="Tratamento visual">
           {#each Object.entries(treatments) as [id]}
             <button aria-pressed={treatment === id} onclick={() => setTreatment(id as Treatment)}>
@@ -915,37 +909,6 @@
   .segment button:focus-visible {
     outline: 3px solid var(--pov-mostarda);
     outline-offset: 2px;
-  }
-
-  /* segmento de fase: pílula deslizante (a casa ativa "salta" como um detente do dial) */
-  .segment.states {
-    position: relative;
-    gap: 0;
-  }
-  .segment.states .pill {
-    position: absolute;
-    top: var(--sp-1);
-    bottom: var(--sp-1);
-    left: var(--sp-1);
-    width: calc((100% - 2 * var(--sp-1)) / var(--count));
-    border-radius: 16px;
-    background: var(--ctrl-active-bg);
-    transform: translateX(calc(var(--active) * 100%));
-    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
-    z-index: 0;
-    pointer-events: none;
-  }
-  .segment.states button {
-    position: relative;
-    z-index: 1;
-  }
-  .segment.states button[aria-pressed='true'] {
-    background: transparent; /* a pílula é o fundo ativo */
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .segment.states .pill {
-      transition: none;
-    }
   }
 
   /* ---- PRIMARY BUTTON ---- */
