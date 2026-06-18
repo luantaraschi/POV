@@ -566,11 +566,11 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 3px;
     text-align: center;
-    border-radius: var(--r-2);
-    padding: var(--sp-2) var(--sp-2);
-    min-height: 44px;
+    border-radius: var(--r-3);
+    padding: var(--sp-2) var(--sp-2) 10px;
+    min-height: 56px;
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
     font-size: var(--fs-300);
@@ -579,11 +579,18 @@
     border: 1px solid var(--ctrl-border);
     background: var(--ctrl-track);
     color: var(--text-soft);
-    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition:
+      background 0.14s ease,
+      color 0.14s ease,
+      border-color 0.14s ease,
+      box-shadow 0.14s ease,
+      transform 0.08s ease;
   }
   .deck-chip:hover {
     border-color: rgba(255, 255, 255, 0.25);
     color: var(--text);
+    transform: translateY(-1px);
   }
   .deck-chip:active {
     transform: scale(0.97);
@@ -593,21 +600,35 @@
     outline-offset: 2px;
   }
 
+  /* chip ativo: face creme em relevo, com aro quente — lê como "selecionado" de longe */
   .deck-chip--active {
     background: var(--pov-creme);
     color: #11233f;
-    border-color: var(--pov-creme);
+    border-color: var(--pov-cream-hi);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      0 0 0 2px color-mix(in srgb, var(--pov-mostarda) 35%, transparent),
+      0 4px 12px -6px rgba(0, 0, 0, 0.5);
+  }
+  .deck-chip--active:hover {
+    transform: translateY(-1px);
+    color: #11233f;
   }
 
   .deck-chip-label {
     font-weight: 700;
-    font-size: var(--fs-300);
+    font-size: var(--fs-400);
+    letter-spacing: 0.01em;
   }
 
   .deck-chip-count {
-    font-weight: 500;
+    font-weight: 600;
     font-size: 10px;
-    opacity: 0.7;
+    opacity: 0.62;
+    font-variant-numeric: tabular-nums;
+  }
+  .deck-chip--active .deck-chip-count {
+    opacity: 0.75;
   }
 
   /* ─── Desktop CTA (hidden on mobile) ────────────────────────────────────── */

@@ -5,7 +5,7 @@
   import PrivacyHandoff from '../ui/PrivacyHandoff.svelte'
   import { scoreFor, stepIndex } from '../meter/geometry'
   import { treatments, palette, type Treatment } from '../design/tokens'
-  import { unlockAudio, press, dock, scoreSting, celebrate, tick, thunk } from '../audio/clicks'
+  import { unlockAudio, press, dock, scoreSting, celebrate, tick, thunk, confirm } from '../audio/clicks'
   import Segmented from '../ui/Segmented.svelte'
   import { isLastRound } from '../game/rules'
   import { tierCopy, tierVar } from '../game/scoring'
@@ -217,11 +217,11 @@
 <!-- Shell already provides the <main> landmark; use a <div> here to avoid nesting -->
 <div class="stage" role="region" aria-label="Medidor de rodada">
     <!-- indicador de rodada + sintonia acumulada (substitui o placar entre rodadas) -->
-    <p class="round-meta" aria-live="polite">
-      Rodada {game.roundIndex + 1} de {game.totalRounds}
-      <span class="round-meta-sep" aria-hidden="true">·</span>
-      Sintonia {game.groupScore} pts
-    </p>
+    <div class="round-meta" aria-live="polite">
+      <span class="rm-round">Rodada <b>{game.roundIndex + 1}</b><span class="rm-of"> / {game.totalRounds}</span></span>
+      <span class="round-meta-sep" aria-hidden="true"></span>
+      <span class="rm-score">Sintonia <b>{game.groupScore}</b> pts</span>
+    </div>
     <Console>
       <div class="screen">
         <Meter
@@ -272,7 +272,7 @@
   <footer class="footer">
     <button class="btn-primary primary-action" onclick={advancePrimary}>{primaryLabel}</button>
     {#if game.phase === 'reveal' && !game.reduce}
-      <p class="spin-hint">↻ Gire o disco para a próxima rodada.</p>
+      <p class="spin-hint"><span class="spin-glyph" aria-hidden="true">↻</span> Gire o disco para a próxima rodada.</p>
     {/if}
     <details class="dev" bind:open={devOpen}>
       <summary>dev</summary>
@@ -314,8 +314,8 @@
   <PrivacyHandoff
     open={showHandoff}
     donoName={game.dono.name}
-    onConfirm={() => { showHandoff = false; game.beginPeek() }}
-    onCancel={() => (showHandoff = false)}
+    onConfirm={() => { unlockAudio(); confirm(); showHandoff = false; game.beginPeek() }}
+    onCancel={() => { press(); showHandoff = false }}
   />
 
 <style>
@@ -359,20 +359,41 @@
     background: var(--dock-bg);
     box-shadow: var(--inset-well);
   }
-  /* indicador de rodada + sintonia (visibilidade do placar, agora no medidor) */
+  /* indicador de rodada + sintonia: pílula tátil de status (substitui o placar entre rodadas) */
   .round-meta {
     align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-3);
     margin: 0;
+    padding: 6px var(--sp-3);
+    border-radius: 999px;
+    background: var(--ctrl-track);
+    border: 1px solid var(--ctrl-border);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
     font-family: 'Space Grotesk', system-ui, sans-serif;
     font-size: var(--fs-300);
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     color: var(--text-soft);
     font-variant-numeric: tabular-nums lining-nums;
   }
-  .round-meta-sep {
-    margin: 0 0.4em;
+  .round-meta b {
+    font-weight: 700;
+    color: var(--text);
+  }
+  .rm-of {
     opacity: 0.6;
+  }
+  /* divisor vertical hairline entre rodada e sintonia */
+  .round-meta-sep {
+    width: 1px;
+    height: 0.95em;
+    background: currentColor;
+    opacity: 0.28;
+  }
+  .rm-score b {
+    color: var(--pov-mostarda);
   }
   .hint {
     align-self: flex-start;
@@ -381,6 +402,8 @@
     padding-left: var(--sp-2);
     font-size: var(--fs-400);
     font-weight: 500;
+    line-height: var(--lh-body);
+    text-wrap: pretty;
     color: var(--text-soft);
   }
   .hint.suspense {
@@ -483,7 +506,22 @@
     border-radius: 50%;
     background: var(--pov-offwhite);
     border: 3px solid var(--tier);
-    box-shadow: var(--elev-1);
+    box-shadow:
+      var(--elev-1),
+      0 0 0 4px color-mix(in srgb, var(--tier) 18%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    /* o disco de pontuação entra primeiro (split + stagger do resultado) */
+    animation: chip-in 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.18) both;
+  }
+  @keyframes chip-in {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
   .chip .num {
     font-family: 'Bricolage Grotesque', sans-serif;
@@ -509,7 +547,10 @@
     font-weight: 600;
     font-size: var(--fs-700);
     line-height: 1.1;
+    text-wrap: balance;
     color: var(--text);
+    /* texto entra logo após o disco (stagger ~110ms) */
+    animation: result-stagger 0.42s 0.11s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
   .result-text .pts {
     margin: 0;
@@ -517,6 +558,17 @@
     font-weight: 600;
     color: var(--text-soft);
     font-variant-numeric: tabular-nums;
+    animation: result-stagger 0.42s 0.19s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes result-stagger {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   @keyframes result-in {
     from {
@@ -562,11 +614,38 @@
   /* dica do gesto de girar a roleta na revelação */
   .spin-hint {
     align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
     margin: calc(-1 * var(--sp-1)) 0 0;
     font-size: var(--fs-300);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--text-soft);
     letter-spacing: 0.01em;
+    /* entra suave junto com o resultado */
+    animation: spin-hint-in 0.4s 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  /* a seta gira devagar, convidando o gesto físico de rodar o disco */
+  .spin-glyph {
+    display: inline-block;
+    font-size: 1.15em;
+    color: var(--pov-mostarda);
+    animation: spin-glyph 3.2s linear infinite;
+  }
+  @keyframes spin-glyph {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes spin-hint-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   /* toast flutuante: feedback curto dos gestos físicos */
   .toast {
@@ -601,7 +680,12 @@
     .toast,
     .hint.suspense,
     .result,
-    .chip .num.pop {
+    .chip .num.pop,
+    .spin-hint,
+    .spin-glyph,
+    .result-text .phrase,
+    .result-text .pts,
+    .chip {
       animation: none;
     }
   }
@@ -706,6 +790,7 @@
   .btn-primary {
     border: 0;
     cursor: pointer;
+    min-height: 54px;
     border-radius: var(--r-4);
     padding: var(--sp-3) var(--sp-5);
     font-family: 'Bricolage Grotesque', sans-serif;
@@ -713,18 +798,31 @@
     font-size: var(--fs-600);
     color: #fff;
     letter-spacing: 0.01em;
+    text-wrap: balance;
     background: var(--pov-coral-cta);
     border-bottom: 4px solid var(--pov-coral-lo);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.18),
+      0 4px 14px -4px rgba(200, 65, 47, 0.5);
     transition:
-      transform 0.07s ease,
+      transform 0.08s ease,
+      box-shadow 0.12s ease,
+      border-bottom-width 0.08s ease,
       filter 0.12s ease;
   }
   .btn-primary:hover {
     filter: brightness(1.05);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      0 6px 18px -4px rgba(200, 65, 47, 0.6);
   }
   .btn-primary:active {
     transform: translateY(2px);
     border-bottom-width: 2px;
+    border-bottom-color: var(--pov-coral-skirt);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 2px 6px -2px rgba(200, 65, 47, 0.4);
   }
   .btn-primary:focus-visible {
     outline: 3px solid var(--pov-mostarda);
