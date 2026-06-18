@@ -2,16 +2,12 @@ import { drawTarget, STEP_P } from '../meter/geometry'
 import { donoIndexFor, totalRounds, maxPossibleTotal, maxPossibleSoFar, sintoniaPct, selo, isLastRound } from './rules'
 import { setSoundEnabled, setHapticsEnabled } from '../audio/clicks'
 import type { MeterState } from '../meter/Meter.svelte'
+import { decks, cardColors, type DeckId } from '../cards/decks'
 
 export type Screen = 'home' | 'howToPlay' | 'setup' | 'inRound' | 'gameOver'
 export type PlayerColor = 'coral' | 'piscina' | 'lilas' | 'menta' | 'mostarda' | 'rosa' | 'laranja' | 'petroleo'
 export type Player = { id: string; name: string; color: PlayerColor }
 export type RoundResult = { donoId: string; cardIndex: number; target: number; value: number; score: 0 | 2 | 3 | 4 }
-
-const CARDS = [
-  { left: 'Frio', right: 'Quente' }, { left: 'Normal', right: 'Estranho' },
-  { left: 'Barato', right: 'Caro' }, { left: 'Mal feito', right: 'Bem feito' },
-]
 
 function initTheme(): 'dark' | 'light' {
   if (typeof localStorage !== 'undefined') {
@@ -22,13 +18,15 @@ function initTheme(): 'dark' | 'light' {
 }
 
 function makeStore() {
-  let config = $state({ players: [{ id: 'p1', name: 'Dono', color: 'coral' as PlayerColor }], voltas: 2 as 1 | 2 | 3, deck: 'classico' as const })
+  let config = $state<{ players: Player[]; voltas: 1 | 2 | 3; deck: DeckId }>({ players: [{ id: 'p1', name: 'Dono', color: 'coral' as PlayerColor }], voltas: 2, deck: 'classico' })
   let screen = $state<Screen>('home')
   let phase = $state<MeterState>('hidden')
   let roundIndex = $state(0)
   let target = $state(drawTarget())
   let value = $state(12 * STEP_P)
   let cardIndex = $state(0)
+  let cardOrder = $state<number[]>([])
+  let cardPos = $state(0)
   let results = $state<RoundResult[]>([])
   let theme = $state<'dark' | 'light'>(initTheme())
   let sound = $state(true)
@@ -43,6 +41,13 @@ function makeStore() {
 
   let returnScreen = $state<Screen>('home')
 
+  function shuffleDeck() {
+    const n = decks[config.deck].cards.length
+    const arr = Array.from({ length: n }, (_, i) => i)
+    for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]] }
+    cardOrder = arr
+  }
+
   return {
     get screen() { return screen }, set screen(s) { screen = s },
     get phase() { return phase }, set phase(p) { phase = p },
@@ -50,7 +55,13 @@ function makeStore() {
     get roundIndex() { return roundIndex },
     get target() { return target }, get cardIndex() { return cardIndex },
     get value() { return value }, set value(v) { value = v },
-    get card() { return CARDS[cardIndex % CARDS.length] },
+    get card() {
+      const deck = decks[config.deck]
+      const idx = cardOrder.length ? cardOrder[cardPos % cardOrder.length] : 0
+      const c = deck.cards[idx]
+      const { lc, rc } = cardColors(idx, c)
+      return { left: c.left, right: c.right, lc, rc }
+    },
     get totalRounds() { return totalRounds(config.voltas, config.players.length) },
     get donoIndex() { return donoIndexFor(roundIndex, config.players.length) },
     get dono() { return config.players[this.donoIndex] },
@@ -72,10 +83,11 @@ function makeStore() {
     openSetup() { screen = 'setup' },
     openHowToPlay() { returnScreen = screen; screen = 'howToPlay' },
     closeHowToPlay() { screen = returnScreen },
-    setupGame(players: Player[], voltas: 1 | 2 | 3, deck: 'classico' = 'classico') {
+    setupGame(players: Player[], voltas: 1 | 2 | 3, deck: DeckId = 'classico') {
       config = { players, voltas, deck }
       roundIndex = 0; results = []
-      target = drawTarget(); value = 12 * STEP_P; cardIndex = 0; phase = 'hidden'
+      shuffleDeck(); cardPos = 0; cardIndex = 0
+      target = drawTarget(); value = 12 * STEP_P; phase = 'hidden'
       // a primeira rodada já começa NO medidor; o overlay de privacidade aparece pq phase='hidden'
       screen = 'inRound'
     },
@@ -87,8 +99,13 @@ function makeStore() {
     },
     changePlayers() { screen = 'setup' },
     recordRound(score: 0 | 2 | 3 | 4) { results.push({ donoId: this.dono.id, cardIndex, target, value, score }) },
-    nextRound() { roundIndex++; target = drawTarget(); value = 12 * STEP_P; cardIndex++; phase = 'hidden' },
-    playAgain() { roundIndex = 0; results = []; target = drawTarget(); value = 12 * STEP_P; cardIndex = 0; phase = 'hidden'; screen = 'inRound' },
+    nextRound() {
+      roundIndex++; target = drawTarget(); value = 12 * STEP_P; phase = 'hidden'
+      cardIndex++
+      cardPos++
+      if (cardPos >= cardOrder.length) { shuffleDeck(); cardPos = 0 }
+    },
+    playAgain() { roundIndex = 0; results = []; shuffleDeck(); cardPos = 0; cardIndex = 0; target = drawTarget(); value = 12 * STEP_P; phase = 'hidden'; screen = 'inRound' },
   }
 }
 export const game = makeStore()

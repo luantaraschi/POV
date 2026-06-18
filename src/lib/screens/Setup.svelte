@@ -4,6 +4,7 @@
   import Console from '../ui/Console.svelte'
   import { game, type Player, type PlayerColor } from '../game/store.svelte'
   import { dock, press } from '../audio/clicks'
+  import { decks, DECK_IDS, type DeckId } from '../cards/decks'
 
   // ── Color order (fixed by index) ──────────────────────────────────────────
   const COLOR_ORDER: PlayerColor[] = [
@@ -36,6 +37,9 @@
   )
 
   const totalRounds = $derived(voltasNumber * players.length)
+
+  // ── Deck selection ────────────────────────────────────────────────────────
+  let deckId = $state<DeckId>('classico')
 
   // ── Derived guards ────────────────────────────────────────────────────────
   const canAddMore = $derived(players.length < 8)
@@ -88,7 +92,7 @@
       name: p.name.trim() || `Jogador ${i + 1}`,
       color: p.color,
     }))
-    game.setupGame(finalPlayers, voltasNumber)
+    game.setupGame(finalPlayers, voltasNumber, deckId)
   }
 </script>
 
@@ -207,9 +211,17 @@
               <div class="option-block">
                 <p class="section-label">Baralho</p>
                 <div class="deck-chips">
-                  <div class="deck-chip deck-chip--active" aria-current="true">Clássico</div>
-                  <div class="deck-chip deck-chip--locked" aria-disabled="true">Picante 🔒</div>
-                  <div class="deck-chip deck-chip--locked" aria-disabled="true">Família 🔒</div>
+                  {#each DECK_IDS as id (id)}
+                    <button
+                      class="deck-chip"
+                      class:deck-chip--active={deckId === id}
+                      aria-pressed={deckId === id}
+                      onclick={() => { press(); deckId = id }}
+                    >
+                      <span class="deck-chip-label">{decks[id].label}</span>
+                      <span class="deck-chip-count">{decks[id].cards.length} cartas</span>
+                    </button>
+                  {/each}
                 </div>
               </div>
 
@@ -551,26 +563,51 @@
 
   .deck-chip {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
     text-align: center;
     border-radius: var(--r-2);
     padding: var(--sp-2) var(--sp-2);
+    min-height: 44px;
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
     font-size: var(--fs-300);
     user-select: none;
+    cursor: pointer;
+    border: 1px solid var(--ctrl-border);
+    background: var(--ctrl-track);
+    color: var(--text-soft);
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  }
+  .deck-chip:hover {
+    border-color: rgba(255, 255, 255, 0.25);
+    color: var(--text);
+  }
+  .deck-chip:active {
+    transform: scale(0.97);
+  }
+  .deck-chip:focus-visible {
+    outline: 3px solid var(--pov-mostarda);
+    outline-offset: 2px;
   }
 
   .deck-chip--active {
     background: var(--pov-creme);
     color: #11233f;
+    border-color: var(--pov-creme);
   }
 
-  .deck-chip--locked {
-    background: var(--ctrl-track);
-    border: 1px solid var(--ctrl-border);
-    color: var(--text-soft);
+  .deck-chip-label {
+    font-weight: 700;
+    font-size: var(--fs-300);
+  }
+
+  .deck-chip-count {
+    font-weight: 500;
+    font-size: 10px;
     opacity: 0.7;
-    cursor: not-allowed;
   }
 
   /* ─── Desktop CTA (hidden on mobile) ────────────────────────────────────── */

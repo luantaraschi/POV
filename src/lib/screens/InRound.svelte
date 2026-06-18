@@ -39,14 +39,6 @@
     return d
   }
 
-  // Cores por carta (apresentação local; o texto/índice da carta vivem no store, na MESMA ordem).
-  const cardColors = [
-    { lc: palette.piscina, rc: palette.coral },
-    { lc: palette.creme, rc: palette.lilas },
-    { lc: palette.menta, rc: palette.mostarda },
-    { lc: palette.creme, rc: palette.laranja },
-  ]
-  const cardColor = $derived(cardColors[game.cardIndex % cardColors.length])
 
   const states: Array<{ id: MeterState; label: string }> = [
     { id: 'hidden', label: 'Escondido' },
@@ -254,7 +246,7 @@
       </svg>
       <div class="card-dock">
         {#key game.cardIndex}
-          <Card left={game.card.left} right={game.card.right} leftColor={cardColor.lc} rightColor={cardColor.rc} />
+          <Card left={game.card.left} right={game.card.right} leftColor={game.card.lc} rightColor={game.card.rc} />
         {/key}
       </div>
     </Console>
