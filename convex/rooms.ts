@@ -224,13 +224,18 @@ export const getRoomView = query({
 
     const ts = Date.now() // apenas para derivar `connected` (display); não afeta STATE
     const playersRaw = await playersByJoin(ctx, room._id)
-    const players = playersRaw.map((p) => ({
-      playerId: p.playerId,
-      name: p.name,
-      color: p.color,
-      avatarStorageId: p.avatarStorageId,
-      connected: ts - p.lastSeen < CONNECTED_MS,
-    }))
+    const players = await Promise.all(
+      playersRaw.map(async (p) => ({
+        playerId: p.playerId,
+        name: p.name,
+        color: p.color,
+        avatarStorageId: p.avatarStorageId,
+        avatarUrl: p.avatarStorageId
+          ? await ctx.storage.getUrl(p.avatarStorageId)
+          : null,
+        connected: ts - p.lastSeen < CONNECTED_MS,
+      })),
+    )
 
     // palpites da rodada atual
     let guesses: { playerId: string; value: number; locked: boolean }[] = []
