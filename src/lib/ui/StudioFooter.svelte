@@ -96,8 +96,8 @@
     margin-top: 0.8rem;
     padding-top: 0.7rem;
     border-top: 1px solid var(--hair);
+    /* Conteúdo do lobby — sem z-index explícito (fluxo normal, abaixo do chrome sticky) */
     position: relative;
-    z-index: var(--z-chrome);
   }
 
   .foot-inner {

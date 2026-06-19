@@ -2,6 +2,7 @@
   import Logo from './Logo.svelte'
   import { press } from '../audio/clicks'
   import { getProfile } from '../online/identity'
+  import { playerColors } from '../design/tokens'
 
   type Props = {
     theme: 'dark' | 'light'
@@ -35,17 +36,8 @@
   // Cor do avatar (da identidade do jogador)
   const avatarColor = $derived(profile?.color ?? 'coral')
 
-  // Mapa de cores de jogador → valores hex (para o avatar inline sem depender de token)
-  const playerColorHex: Record<string, string> = {
-    coral: '#e8674a',
-    piscina: '#56b0aa',
-    menta: '#8fce9f',
-    mostarda: '#e0a92e',
-    rosa: '#e7a6bf',
-    lilas: '#9a86c4',
-    laranja: '#e0892e',
-    petroleo: '#2f6f74',
-  }
+  // Cor hex do avatar lida do mapa canônico de identidade do jogador (tokens.ts)
+  // Evita duplicação de valores — tokens.ts é a única fonte de verdade.
 </script>
 
 <header class="topbar" class:topbar-lobby={isLobby}>
@@ -130,7 +122,7 @@
       >
         <span
           class="profile-av"
-          style="background:{playerColorHex[avatarColor] ?? '#e8674a'}"
+          style="background:{playerColors[avatarColor as keyof typeof playerColors] ?? playerColors.coral}"
           aria-hidden="true"
         >
           {initials}
