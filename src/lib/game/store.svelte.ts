@@ -41,10 +41,12 @@ function makeStore() {
 
   let returnScreen = $state<Screen>('home')
 
-  function shuffleDeck() {
+  function shuffleDeck(avoidFirst?: number) {
     const n = decks[config.deck].cards.length
     const arr = Array.from({ length: n }, (_, i) => i)
     for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]] }
+    // na virada do baralho, não deixa a 1ª carta do novo ciclo ser a mesma que acabou de sair
+    if (n > 1 && avoidFirst !== undefined && arr[0] === avoidFirst) { [arr[0], arr[1]] = [arr[1], arr[0]] }
     cardOrder = arr
   }
 
@@ -103,7 +105,7 @@ function makeStore() {
       roundIndex++; target = drawTarget(); value = 12 * STEP_P; phase = 'hidden'
       cardIndex++
       cardPos++
-      if (cardPos >= cardOrder.length) { shuffleDeck(); cardPos = 0 }
+      if (cardPos >= cardOrder.length) { shuffleDeck(cardOrder[cardOrder.length - 1]); cardPos = 0 }
     },
     playAgain() { roundIndex = 0; results = []; shuffleDeck(); cardPos = 0; cardIndex = 0; target = drawTarget(); value = 12 * STEP_P; phase = 'hidden'; screen = 'inRound' },
   }
