@@ -104,6 +104,10 @@ export const reveal = mutation({
   handler: async (ctx, args) => {
     const room = await roomByCode(ctx, args.code)
     if (!room || !room.round) return { ok: false }
+    // Só o host ou o Dono podem forçar a revelação (a UI já restringe; isto blinda clientes forjados).
+    const isHost = args.playerId === room.hostPlayerId
+    const isDono = args.playerId === room.round.donoPlayerId
+    if (!isHost && !isDono) return { ok: false }
     await revealRound(ctx, room._id)
     return { ok: true }
   },
