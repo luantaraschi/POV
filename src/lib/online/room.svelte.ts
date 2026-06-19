@@ -60,6 +60,7 @@ export function createRoomConnection(getCode: () => string | null) {
   const mLockGuess = useMutation(api.round.lockGuess)
   const mReveal = useMutation(api.round.reveal)
   const mNextRound = useMutation(api.round.nextRound)
+  const mRestartGame = useMutation(api.round.restartGame)
   const mGenerateUploadUrl = useMutation(api.files.generateUploadUrl)
   const mSaveAvatar = useMutation(api.files.saveAvatar)
 
@@ -195,6 +196,12 @@ export function createRoomConnection(getCode: () => string | null) {
     return mNextRound({ code, playerId })
   }
 
+  async function restartGame() {
+    const code = getCode()
+    if (!code) return
+    return mRestartGame({ code, playerId })
+  }
+
   async function leaveRoom() {
     const code = getCode()
     if (!code) return
@@ -266,6 +273,7 @@ export function createRoomConnection(getCode: () => string | null) {
     lockGuess,
     reveal,
     nextRound,
+    restartGame,
     leaveRoom,
     generateUploadUrl,
     saveAvatar,

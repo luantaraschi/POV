@@ -6,6 +6,8 @@
   import Profile from './Profile.svelte'
   import CreateJoin from './CreateJoin.svelte'
   import Lobby from './Lobby.svelte'
+  import OnlineRound from './OnlineRound.svelte'
+  import OnlineGameOver from './OnlineGameOver.svelte'
 
   // ── Local pre-room state ─────────────────────────────────────────────────
   // roomCode drives the reactive Convex query (null => 'skip').
@@ -62,51 +64,8 @@
 {:else if route === 'lobby'}
   <Lobby {conn} onLeave={leave} />
 {:else if route === 'playing'}
-  <!-- TEMP placeholder — substituído pela OnlineRound na Task 7 -->
-  <div class="placeholder" data-testid="online-playing">
-    <p>Partida iniciada — tela de jogo em construção (Task 7)</p>
-    <button class="ghost-btn" onclick={leave}>Sair da sala</button>
-  </div>
+  <OnlineRound {conn} onLeave={leave} />
 {:else}
-  <!-- 'ended' — TEMP placeholder -->
-  <div class="placeholder" data-testid="online-ended">
-    <p>Partida encerrada — placar final em construção (Task 7)</p>
-    <button class="ghost-btn" onclick={leave}>Sair da sala</button>
-  </div>
+  <!-- 'ended' -->
+  <OnlineGameOver {conn} onLeave={leave} />
 {/if}
-
-<style>
-  .placeholder {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--sp-4);
-    padding: var(--sp-6);
-    text-align: center;
-  }
-  .placeholder p {
-    margin: 0;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: var(--fs-500);
-    color: var(--text-soft);
-    max-width: 30ch;
-  }
-  .ghost-btn {
-    appearance: none;
-    cursor: pointer;
-    min-height: 44px;
-    padding: var(--sp-2) var(--sp-5);
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: var(--fs-400);
-    color: var(--text-soft);
-    background: transparent;
-    border: 1px solid var(--ctrl-border);
-    border-radius: var(--r-3);
-    transition: color 0.12s ease, border-color 0.12s ease;
-  }
-  .ghost-btn:hover { color: var(--text); border-color: rgba(255, 255, 255, 0.3); }
-  .ghost-btn:focus-visible { outline: 3px solid var(--pov-mostarda); outline-offset: 2px; }
-</style>

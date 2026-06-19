@@ -163,6 +163,34 @@ export const nextRound = mutation({
   },
 })
 
+// ---------- restart (host: volta ao lobby p/ nova partida na mesma sala) ----------
+
+export const restartGame = mutation({
+  args: { code: v.string(), playerId: v.string() },
+  handler: async (ctx, args) => {
+    const room = await roomByCode(ctx, args.code)
+    if (!room) throw new Error('Sala não encontrada')
+    if (args.playerId !== room.hostPlayerId) throw new Error('Só o anfitrião reinicia')
+
+    // limpa todos os palpites da partida encerrada (qualquer rodada)
+    const guesses = await ctx.db
+      .query('guesses')
+      .withIndex('by_room_round', (q) => q.eq('roomId', room._id))
+      .collect()
+    for (const g of guesses) await ctx.db.delete(g._id)
+
+    await ctx.db.patch(room._id, {
+      status: 'lobby',
+      round: null,
+      groupScore: 0,
+      cardOrder: shuffledOrder(room.cardOrder.length),
+      cardPos: 0,
+    })
+
+    return { ok: true }
+  },
+})
+
 // ---------- reveal logic (compartilhada; GUARD score-once) ----------
 
 async function revealRound(ctx: MutationCtx, roomId: Id<'rooms'>): Promise<void> {
