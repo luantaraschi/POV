@@ -4,6 +4,9 @@ node_modules/
 # build
 dist/
 
+# Convex: código gerado (regenerado por `npx convex dev`/`deploy`)
+convex/_generated/
+
 # companion de brainstorm (mockups persistidos localmente, fora do versionamento)
 .superpowers/
 
