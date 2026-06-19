@@ -21,7 +21,7 @@
   // ── CTA action ────────────────────────────────────────────────────────
   function handleCta() {
     confirm()
-    if (game.returnScreen === 'home') {
+    if (game.returnScreen === 'lobby') {
       game.openSetup()
     } else {
       game.closeHowToPlay()

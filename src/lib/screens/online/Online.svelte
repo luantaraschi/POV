@@ -58,9 +58,9 @@
 </script>
 
 {#if route === 'profile'}
-  <Profile {conn} onContinue={onProfileSaved} onBack={() => game.openModeSelect()} />
+  <Profile {conn} onContinue={onProfileSaved} onBack={() => game.goHome()} />
 {:else if route === 'createjoin'}
-  <CreateJoin {conn} onJoined={onJoined} onBack={() => { if (hasProfile) step = 'profile'; else game.openModeSelect() }} onChangeProfile={() => (step = 'profile')} />
+  <CreateJoin {conn} onJoined={onJoined} onBack={() => { if (hasProfile) step = 'profile'; else game.goHome() }} onChangeProfile={() => (step = 'profile')} />
 {:else if route === 'lobby'}
   <Lobby {conn} onLeave={leave} />
 {:else if route === 'playing'}

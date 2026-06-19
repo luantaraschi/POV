@@ -34,7 +34,7 @@
     onToggleTheme={() => game.toggleTheme()}
     onToggleSound={() => game.toggleSound()}
     onMenu={inGameScreens.includes(game.screen) ? () => (showPause = true) : undefined}
-    onHome={game.screen !== 'home' ? () => game.goHome() : undefined}
+    onHome={game.screen !== 'lobby' ? () => game.goHome() : undefined}
   />
   <main class="screen-main">{@render children?.()}</main>
 
