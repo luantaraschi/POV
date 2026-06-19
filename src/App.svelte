@@ -2,9 +2,8 @@
   import { setupConvex } from 'convex-svelte'
   import { game } from './lib/game/store.svelte'
   import Shell from './lib/ui/Shell.svelte'
-  import Home from './lib/screens/Home.svelte'
+  import Lobby from './lib/screens/Lobby.svelte'
   import HowToPlay from './lib/screens/HowToPlay.svelte'
-  import ModeSelect from './lib/screens/ModeSelect.svelte'
   import Online from './lib/screens/online/Online.svelte'
   import Setup from './lib/screens/Setup.svelte'
   import InRound from './lib/screens/InRound.svelte'
@@ -24,9 +23,8 @@
       class="screen-anim"
       in:fade={{ duration: game.reduce ? 0 : 170 }}
     >
-      {#if game.screen === 'home'}<Home />
+      {#if game.screen === 'lobby'}<Lobby />
       {:else if game.screen === 'howToPlay'}<HowToPlay />
-      {:else if game.screen === 'modeSelect'}<ModeSelect />
       {:else if game.screen === 'online'}<Online />
       {:else if game.screen === 'setup'}<Setup />
       {:else if game.screen === 'inRound'}<InRound />

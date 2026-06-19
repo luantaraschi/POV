@@ -3,11 +3,12 @@
   import TopBar from './TopBar.svelte'
   import PauseSheet from './PauseSheet.svelte'
   import SettingsSheet from './SettingsSheet.svelte'
+  import ProfileSheet from '../profile/ProfileSheet.svelte'
   import { game } from '../game/store.svelte'
   let { dim = false, children }: { dim?: boolean; children?: import('svelte').Snippet } = $props()
 
   let showPause = $state(false)
-  let showSettings = $state(false)
+  // Configurações e Perfil: abertura no store (global) para ser acionável do lobby e do jogo.
 
   const inGameScreens: typeof game.screen[] = ['inRound']
 
@@ -27,14 +28,18 @@
 </script>
 
 <div class="scene" class:theme-dark={game.theme === 'dark'} class:theme-light={game.theme === 'light'}>
-  <Background theme={game.theme} {dim} />
+  <Background {dim} />
   <TopBar
     theme={game.theme}
     sound={game.sound}
     onToggleTheme={() => game.toggleTheme()}
     onToggleSound={() => game.toggleSound()}
     onMenu={inGameScreens.includes(game.screen) ? () => (showPause = true) : undefined}
-    onHome={game.screen !== 'home' ? () => game.goHome() : undefined}
+    onHome={game.screen !== 'lobby' ? () => game.goHome() : undefined}
+    isLobby={game.screen === 'lobby'}
+    onOpenProfile={() => game.openProfile()}
+    onOpenHowToPlay={() => game.openHowToPlay()}
+    onOpenSettings={() => game.openSettings()}
   />
   <main class="screen-main">{@render children?.()}</main>
 
@@ -42,12 +47,16 @@
   <PauseSheet
     open={showPause}
     onClose={() => (showPause = false)}
-    onSettings={() => (showSettings = true)}
+    onSettings={() => game.openSettings()}
     onHowToPlay={() => { showPause = false; game.openHowToPlay() }}
   />
   <SettingsSheet
-    open={showSettings}
-    onClose={() => (showSettings = false)}
+    open={game.settingsOpen}
+    onClose={() => game.closeSettings()}
+  />
+  <ProfileSheet
+    open={game.profileOpen}
+    onClose={() => game.closeProfile()}
   />
 </div>
 

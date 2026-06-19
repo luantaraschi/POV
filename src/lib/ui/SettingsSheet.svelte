@@ -7,7 +7,7 @@
   let { open, onClose }: Props = $props()
 </script>
 
-<Sheet {open} {onClose} ariaLabel="Configurações" variant="sheet">
+<Sheet {open} {onClose} ariaLabel="Configurações" variant="sheet" surface="studio">
   <h2 class="title">Configurações</h2>
 
   <!-- Som -->
@@ -54,7 +54,7 @@
   </div>
 
   <!-- Movimento reduzido (read-only, do sistema) -->
-  <div class="row no-border">
+  <div class="row">
     <div class="label-col">
       <span class="rlabel">Movimento reduzido</span>
       <span class="rsub">(do sistema) menos animações</span>
@@ -70,15 +70,33 @@
     ><span class="knob"></span></button>
   </div>
 
+  <!-- Idioma — andaime para i18n futuro; apenas PT-BR funcional na Fase 1 -->
+  <div class="row no-border">
+    <div class="label-col">
+      <span class="rlabel">Idioma</span>
+      <span class="rsub">interface do jogo</span>
+    </div>
+    <div class="lang-select-wrap">
+      <select
+        class="lang-select"
+        aria-label="Idioma da interface"
+        value="pt-BR"
+        disabled
+      >
+        <option value="pt-BR">🇧🇷 PT-BR</option>
+      </select>
+    </div>
+  </div>
+
   <p class="footer-copy">POV v0.1</p>
 </Sheet>
 
 <style>
   .title {
-    font-family: 'Bricolage Grotesque', sans-serif;
-    font-weight: 800;
+    font-family: 'Clash Display', 'Space Grotesk', sans-serif;
+    font-weight: 700;
     font-size: var(--fs-700);
-    color: var(--text);
+    color: var(--ink);
     margin: 0 0 var(--sp-2);
     line-height: var(--lh-tight);
   }
@@ -88,7 +106,7 @@
     align-items: center;
     justify-content: space-between;
     padding: var(--sp-3) 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid var(--hair);
     gap: var(--sp-4);
   }
   .row.no-border {
@@ -102,17 +120,17 @@
   }
 
   .rlabel {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     font-weight: 600;
     font-size: var(--fs-500);
-    color: var(--text);
+    color: var(--ink);
     line-height: 1.2;
   }
 
   .rsub {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     font-size: var(--fs-300);
-    color: var(--text-soft);
+    color: var(--ink-soft); /* ≥4.5:1 sobre --surface nos dois temas */
   }
 
   /* Pill switch */
@@ -130,7 +148,7 @@
     padding: 0;
   }
   .sw::before {
-    /* The track */
+    /* The track (off): poço no tom --sunk com hairline --hair, visível em branco e navy */
     content: '';
     position: absolute;
     left: 4px;
@@ -139,11 +157,14 @@
     width: 44px;
     height: 26px;
     border-radius: 20px;
-    background: rgba(255, 255, 255, 0.15);
-    transition: background 0.18s ease;
+    background: var(--sunk);
+    box-shadow: inset 0 0 0 1px var(--hair);
+    transition: background 0.18s ease, box-shadow 0.18s ease;
   }
   .sw.on::before {
-    background: var(--pov-menta, #93cfa9);
+    /* on: acento de ação Studio Sinal */
+    background: var(--red);
+    box-shadow: none;
   }
   .sw:disabled::before {
     opacity: 0.45;
@@ -174,7 +195,7 @@
   }
 
   .sw:focus-visible {
-    outline: 3px solid var(--pov-mostarda);
+    outline: 3px solid var(--mustard);
     outline-offset: 3px;
     border-radius: 4px;
   }
@@ -186,12 +207,35 @@
     }
   }
 
+  /* Seletor de idioma — andaime PT-BR (desabilitado na Fase 1; estilo por tokens) */
+  .lang-select-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .lang-select {
+    appearance: none;
+    background: var(--sunk);
+    border: 1px solid var(--hair);
+    border-radius: 10px;
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: var(--fs-400);
+    font-weight: 500;
+    padding: 7px 12px;
+    cursor: not-allowed;
+    opacity: 0.7;
+    min-height: 40px;
+  }
+  .lang-select:focus-visible {
+    outline: 3px solid var(--mustard);
+    outline-offset: 3px;
+  }
+
   .footer-copy {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     font-size: var(--fs-300);
-    color: var(--text-soft);
+    color: var(--ink-soft);
     text-align: center;
     margin: var(--sp-4) 0 0;
-    opacity: 0.55;
   }
 </style>

@@ -28,11 +28,34 @@ export const palette = {
 
 export type ColorName = keyof typeof palette
 
-// Cunhas de pontuação (ordem canônica do Sintonia): 2 = laranja, 3 = mostarda, 4 = teal profundo.
+// ── Paleta-acento retrô (igual nos dois temas) ──────────────────────────────
+// Espelha os tokens CSS --red/--teal/--sage/--mustard/--pink/--coral/--navy/--cream.
+// ATENÇÃO: app.css é a fonte canônica dessas cores; esses hex devem ser mantidos
+// em sincronia manualmente. Duplicação intencional: SVG inline e canvas precisam
+// de hex via JS (não conseguem ler custom properties CSS diretamente).
+export const accent = {
+  red: '#dd3b2e', teal: '#56b0aa', sage: '#8fce9f',
+  mustard: '#e0a92e', pink: '#e7a6bf', coral: '#e8674a',
+  navy: '#1b2350', cream: '#efe6cf',
+} as const
+
+// ── Cores de identidade do jogador (8 nomes canônicos, hex retrô) ─────────
+// Alvo: substituir a união do store (type PlayerColor) e os usos de `palette` em
+// PlayerToken, Setup e Profile nas próximas tasks. Por ora é a referência canônica;
+// os componentes ainda consomem `palette` diretamente.
+export const playerColors = {
+  coral: '#e8674a', piscina: '#56b0aa', menta: '#8fce9f', mostarda: '#e0a92e',
+  rosa: '#e7a6bf', lilas: '#9a86c4', laranja: '#e0892e', petroleo: '#2f6f74',
+} as const
+
+export type PlayerColorName = keyof typeof playerColors
+
+// ── Cunhas de pontuação (chaves numéricas: 2/3/4) ───────────────────────────
+// Faixa externa = 2 pts (laranja), intermediária = 3 (mostarda), mira = 4 (teal).
 export const scoreColors = {
-  two: palette.laranja, // faixa externa (2 pts) — laranja suave
-  three: palette.mostarda, // faixa intermediária (3 pts) — mostarda/ocre
-  four: palette.bullseye, // mira (4 pts) — azul-teal profundo
+  2: '#e0892e', // laranja retrô
+  3: '#e0a92e', // mostarda retrô
+  4: '#2f6f74', // petróleo retrô (mira)
 } as const
 
 // Tratamentos visuais para comparar no playground (híbrido tátil + ilustrado é o padrão).

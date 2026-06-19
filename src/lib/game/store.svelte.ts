@@ -4,7 +4,7 @@ import { setSoundEnabled, setHapticsEnabled } from '../audio/clicks'
 import type { MeterState } from '../meter/Meter.svelte'
 import { decks, cardColors, type DeckId } from '../cards/decks'
 
-export type Screen = 'home' | 'howToPlay' | 'modeSelect' | 'online' | 'setup' | 'inRound' | 'gameOver'
+export type Screen = 'lobby' | 'howToPlay' | 'online' | 'setup' | 'inRound' | 'gameOver'
 export type PlayerColor = 'coral' | 'piscina' | 'lilas' | 'menta' | 'mostarda' | 'rosa' | 'laranja' | 'petroleo'
 export type Player = { id: string; name: string; color: PlayerColor }
 export type RoundResult = { donoId: string; cardIndex: number; target: number; value: number; score: 0 | 2 | 3 | 4 }
@@ -19,7 +19,7 @@ function initTheme(): 'dark' | 'light' {
 
 function makeStore() {
   let config = $state<{ players: Player[]; voltas: 1 | 2 | 3; deck: DeckId }>({ players: [{ id: 'p1', name: 'Dono', color: 'coral' as PlayerColor }], voltas: 2, deck: 'classico' })
-  let screen = $state<Screen>('home')
+  let screen = $state<Screen>('lobby')
   let phase = $state<MeterState>('hidden')
   let roundIndex = $state(0)
   let target = $state(drawTarget())
@@ -31,6 +31,14 @@ function makeStore() {
   let theme = $state<'dark' | 'light'>(initTheme())
   let sound = $state(true)
   let haptics = $state(true)
+  // contador reativo: bumpado ao salvar o perfil para o chip do TopBar / prévia do Lobby
+  // (que leem getProfile() de forma não-reativa) reagirem e re-lerem o localStorage.
+  let profileVersion = $state(0)
+  // ProfileSheet é global (montado no Shell); estado de abertura no store para abrir de qualquer
+  // lugar (chip do lobby via TopBar, ou onboarding do fluxo online).
+  let profileOpen = $state(false)
+  // SettingsSheet também é global; abrível do lobby (cluster do TopBar) e da PauseSheet in-game.
+  let settingsOpen = $state(false)
 
   let reduce = $state(false)
   if (typeof window !== 'undefined' && window.matchMedia) {
@@ -39,7 +47,7 @@ function makeStore() {
     mq.addEventListener('change', () => (reduce = mq.matches))
   }
 
-  let returnScreen = $state<Screen>('home')
+  let returnScreen = $state<Screen>('lobby')
 
   function shuffleDeck(avoidFirst?: number) {
     const n = decks[config.deck].cards.length
@@ -77,12 +85,19 @@ function makeStore() {
     get sound() { return sound },
     get haptics() { return haptics },
     get reduce() { return reduce },
+    get profileVersion() { return profileVersion },
+    bumpProfile() { profileVersion++ },
+    get profileOpen() { return profileOpen },
+    openProfile() { profileOpen = true },
+    closeProfile() { profileOpen = false },
+    get settingsOpen() { return settingsOpen },
+    openSettings() { settingsOpen = true },
+    closeSettings() { settingsOpen = false },
     get returnScreen() { return returnScreen },
     toggleTheme() { theme = theme === 'dark' ? 'light' : 'dark'; if (typeof localStorage !== 'undefined') localStorage.setItem('pov-theme', theme) },
     toggleSound() { sound = !sound; setSoundEnabled(sound) },
     toggleHaptics() { haptics = !haptics; setHapticsEnabled(haptics) },
-    goHome() { screen = 'home' },
-    openModeSelect() { screen = 'modeSelect' },
+    goHome() { screen = 'lobby' },
     openSetup() { screen = 'setup' },
     openOnline() { screen = 'online' },
     openHowToPlay() { returnScreen = screen; screen = 'howToPlay' },
