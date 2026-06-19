@@ -136,6 +136,8 @@
     font-size: clamp(3rem, 11vw, 4.25rem); /* 48 → 68px */
     position: relative;
     z-index: var(--z-hero, 1);
+    /* entrada: sobe de baixo (stagger 1º) */
+    animation: rise 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .tagline {
@@ -148,6 +150,8 @@
     color: var(--ink-soft);
     position: relative;
     z-index: var(--z-hero, 1);
+    /* entrada: sobe de baixo (stagger 2º) */
+    animation: rise 480ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
   }
 
   .dialwrap {
@@ -156,6 +160,32 @@
     max-width: clamp(240px, 70vw, 320px);
     position: relative;
     z-index: var(--z-hero, 1);
+    /* entrada: scale-in com leve overshoot (espelha o spec §2.5) */
+    animation: dial-in 560ms cubic-bezier(0.34, 1.56, 0.64, 1) 120ms both;
+  }
+
+  /* sobe de baixo p/ cima, fade curto */
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* dial: 0.94 → 1 com overshoot suave */
+  @keyframes dial-in {
+    from {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 
   /* ── Card de entrada ── */
@@ -174,6 +204,8 @@
       0 18px 40px -16px rgba(27, 35, 80, 0.2);
     position: relative;
     z-index: var(--z-hero, 1);
+    /* entrada: sobe de baixo (stagger 3º — depois do herói) */
+    animation: rise 480ms cubic-bezier(0.22, 1, 0.36, 1) 200ms both;
   }
 
   :global(.theme-dark) .entry {
@@ -368,6 +400,13 @@
     .cta,
     .ghost {
       transition: none;
+    }
+    /* sem entrada animada: estados finais imediatos (spec §2.5 / §11) */
+    .wordmark,
+    .tagline,
+    .dialwrap,
+    .entry {
+      animation: none;
     }
   }
 
