@@ -193,11 +193,11 @@ export function wedges(target: number): Wedge[] {
   const tP = stepIndex(target) * STEP_P
   const s = STEP_P
   const defs: Array<[number, number, string, 2 | 3 | 4]> = [
-    [tP - 2.5 * s, tP - 1.5 * s, scoreColors.two, 2],
-    [tP - 1.5 * s, tP - 0.5 * s, scoreColors.three, 3],
-    [tP - 0.5 * s, tP + 0.5 * s, scoreColors.four, 4],
-    [tP + 0.5 * s, tP + 1.5 * s, scoreColors.three, 3],
-    [tP + 1.5 * s, tP + 2.5 * s, scoreColors.two, 2],
+    [tP - 2.5 * s, tP - 1.5 * s, scoreColors[2], 2],
+    [tP - 1.5 * s, tP - 0.5 * s, scoreColors[3], 3],
+    [tP - 0.5 * s, tP + 0.5 * s, scoreColors[4], 4],
+    [tP + 0.5 * s, tP + 1.5 * s, scoreColors[3], 3],
+    [tP + 1.5 * s, tP + 2.5 * s, scoreColors[2], 2],
   ]
   return defs
     .map(([pa, pb, color, points]) => {
