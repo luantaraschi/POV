@@ -254,8 +254,9 @@
   .iconbtn {
     display: grid;
     place-items: center;
-    width: 35px;
-    height: 35px;
+    /* 44px: alvo mínimo de toque (Task 4 §9 — mobile) */
+    width: 44px;
+    height: 44px;
     color: var(--ink-soft, var(--text));
     background: var(--surface);
     border: none;
@@ -271,10 +272,8 @@
     flex-shrink: 0;
   }
 
-  /* modo in-game: tamanho maior (44px como antes) */
+  /* modo in-game: visual diferenciado (tamanho já é 44px na base) */
   :not(.topbar-lobby) .iconbtn {
-    width: 44px;
-    height: 44px;
     border-radius: var(--r-3, 14px);
     background: var(--icon-bg);
     border: 1px solid var(--icon-border);
@@ -313,7 +312,8 @@
     align-items: center;
     gap: 8px;
     padding: 5px 12px 5px 5px;
-    height: 35px;
+    /* 44px: alvo mínimo de toque (Task 4 §9 — mobile) */
+    min-height: 44px;
     border-radius: 999px;
     background: var(--surface);
     border: none;

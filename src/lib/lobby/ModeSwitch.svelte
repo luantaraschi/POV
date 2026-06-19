@@ -12,11 +12,11 @@
   }
 </script>
 
-<div class="seg" role="tablist" aria-label="Modo de jogo">
+<div class="seg" role="radiogroup" aria-label="Modo de jogo">
   <button
     type="button"
-    role="tab"
-    aria-selected={value === 'local'}
+    role="radio"
+    aria-checked={value === 'local'}
     class:on={value === 'local'}
     onclick={() => pick('local')}
   >
@@ -24,8 +24,8 @@
   </button>
   <button
     type="button"
-    role="tab"
-    aria-selected={value === 'online'}
+    role="radio"
+    aria-checked={value === 'online'}
     class:on={value === 'online'}
     onclick={() => pick('online')}
   >
