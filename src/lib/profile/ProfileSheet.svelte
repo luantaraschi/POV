@@ -117,7 +117,7 @@
   }
 </script>
 
-<Sheet {open} {onClose} ariaLabel="Seu perfil" variant="sheet">
+<Sheet {open} {onClose} ariaLabel="Seu perfil" variant="sheet" surface="studio">
   <h2 class="title">Seu perfil</h2>
   <p class="sub">É assim que o resto da sala vai te ver.</p>
 
@@ -251,13 +251,13 @@
   .lbl {
     font-family: 'Inter', system-ui, sans-serif;
     font-size: 0.65625rem; /* 10.5px */
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--ink-soft);
+    color: var(--ink); /* label de seção em tinta cheia (contraste alto) */
   }
   .optional {
     margin-left: 6px; letter-spacing: 0.08em;
-    color: var(--ink-soft); opacity: 0.7; font-weight: 600;
+    color: var(--ink-soft); font-weight: 600; /* ≥4.5:1 sobre --surface */
   }
 
   .name-input {
