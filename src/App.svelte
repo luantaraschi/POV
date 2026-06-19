@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { setupConvex } from 'convex-svelte'
   import { game } from './lib/game/store.svelte'
   import Shell from './lib/ui/Shell.svelte'
   import Home from './lib/screens/Home.svelte'
@@ -7,6 +8,11 @@
   import InRound from './lib/screens/InRound.svelte'
   import GameOver from './lib/screens/GameOver.svelte'
   import { fade } from 'svelte/transition'
+
+  // Cliente Convex app-scoped: inicializa uma vez no root e injeta no contexto
+  // Svelte para que telas online possam usar useQuery/useMutation/useConvexClient.
+  setupConvex(import.meta.env.VITE_CONVEX_URL)
+
   const dim = $derived(game.screen === 'inRound' && game.phase === 'reveal')
 </script>
 
