@@ -13,7 +13,7 @@
   function handlePlay() {
     unlockAudio()
     press()
-    game.openSetup()
+    game.openModeSelect()
   }
 </script>
 
