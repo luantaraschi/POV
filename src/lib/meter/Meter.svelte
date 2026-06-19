@@ -53,6 +53,9 @@
     lockGestures?: boolean // modo teste: peças se mexem livremente, mas NÃO disparam nova rodada
     decorative?: boolean // modo VITRINE: dial inerte (sem ponteiro/teclado/som, oculto ao leitor de tela)
     markers?: Marker[] // pinos coloridos de palpite (online): { p, color, label? }; default []
+    playground?: boolean // modo BRINQUEDO (lobby): tampa+agulha+disco TODOS interativos ao mesmo tempo, sem efeito de jogo
+    shuffleSpin?: number // bump (lobby): dispara o giro de "embaralhar" sob demanda, desacoplado do roundSeed
+    locked?: boolean // playground: trava a agulha no detente atual (thunk+háptico); soltar reabilita o arraste
   }
 
   let {
@@ -70,10 +73,14 @@
     lockGestures = false,
     decorative = false,
     markers = [],
+    playground = false,
+    shuffleSpin = 0,
+    locked = false,
   }: Props = $props()
 
   const t = $derived(treatments[treatment])
-  const interactive = $derived(phase === 'guessing')
+  // playground relaxa o gating: agulha jogável SEMPRE (exceto quando travada), independente da fase.
+  const interactive = $derived((playground || phase === 'guessing') && !(playground && locked))
 
   // disco navy CÍRCULO COMPLETO (gira limpo; a metade de baixo some sob a placa da frente)
   const nightPath = fullDiskPath(R_SCALLOP_INNER + 4)
@@ -123,6 +130,18 @@
   let lastIdx = stepIndex(value)
   let lastStepAt = 0 // instante do último detente cruzado (p/ velocidade do arraste -> som)
 
+  // Coordenada SVG (viewBox) do ponteiro — usada no playground p/ saber QUE peça foi agarrada
+  // (raio a partir do eixo: anel externo = disco; dentro da face = tampa/agulha).
+  function toSvgXY(e: PointerEvent): { x: number; y: number } | null {
+    if (!svgEl) return null
+    const pt = svgEl.createSVGPoint()
+    pt.x = e.clientX
+    pt.y = e.clientY
+    const m = svgEl.getScreenCTM()
+    if (!m) return null
+    const sp = pt.matrixTransform(m.inverse())
+    return { x: sp.x, y: sp.y }
+  }
   function toSvgP(e: PointerEvent): number | null {
     if (!svgEl) return null
     const pt = svgEl.createSVGPoint()
@@ -183,7 +202,7 @@
   }
 
   // ===== COBERTURA FÍSICA (meia-lua que gira no eixo) — peso + gravidade =====
-  const coverDraggable = $derived(phase === 'hidden' || phase === 'peek')
+  const coverDraggable = $derived(playground || phase === 'hidden' || phase === 'peek')
   let coverPos = $state(1) // 0 aberto, 1 fechado (sincronizado à fase no $effect abaixo)
   let coverDragging = $state(false)
   // cobertura E pega giram JUNTAS pelo ângulo entre os cantos do "V" (SPAN, ~170°), não 180°:
@@ -222,7 +241,7 @@
   let suppressAutoSpin = false // o giro MANUAL do disco já anima -> pular o startSpin automático
 
   // ===== ARRASTAR O DISCO na revelação para GIRAR a roleta e começar a próxima rodada =====
-  const discDraggable = $derived(phase === 'reveal' && !reduceMotion)
+  const discDraggable = $derived((playground || phase === 'reveal') && !reduceMotion)
   let discDragging = $state(false)
   let discAlphaPrev = 0
   let discTotal = 0 // rotação acumulada (graus) -> limiar de "girou de verdade"
@@ -567,8 +586,21 @@
   }
 
   // ===== roteamento: cobertura (hidden/peek) > agulha (guessing) > disco (reveal) =====
+  // No PLAYGROUND as três peças coexistem -> roteia pela REGIÃO agarrada (raio a partir do eixo):
+  // anel externo (fora da face) = disco; dentro da face = tampa se ela cobre a face, senão agulha.
   function onPointerDown(e: PointerEvent) {
     if (decorative) return
+    if (playground) {
+      const xy = toSvgXY(e)
+      const r = xy ? Math.hypot(xy.x - CX, xy.y - CY) : 0
+      // fora da face cremosa -> agarra o disco (serrilhado) p/ girar
+      if (discDraggable && r > R_FACE) discDown(e)
+      // tampa fechada cobre a face -> arrastar a face abre a tampa; tampa aberta -> agarra a agulha
+      else if (coverDraggable && coverPos > 0.5) coverDown(e)
+      else if (interactive) needleDown(e)
+      else if (coverDraggable) coverDown(e)
+      return
+    }
     if (coverDraggable) coverDown(e)
     else if (interactive) needleDown(e)
     else if (discDraggable) discDown(e)
@@ -625,6 +657,27 @@
       else if (!decorative) startSpin() // decorativo: sem giro/som ao trocar de rodada
     }
     prevSeed = rs
+  })
+
+  // PLAYGROUND: embaralhar sob demanda (bump em shuffleSpin) — gira o disco como o roundSeed faz,
+  // mas SEM efeito de jogo. Desacoplado do roundSeed: serve só ao brinquedo do lobby.
+  let prevShuffle: number | undefined
+  $effect(() => {
+    const sp = shuffleSpin
+    if (prevShuffle !== undefined && sp !== prevShuffle && !decorative) startSpin()
+    prevShuffle = sp
+  })
+
+  // PLAYGROUND: travar/soltar a agulha ("selecionar"). Travar fixa no detente atual (a agulha já
+  // para de arrastar via `interactive`); toca thunk+háptico no instante em que trava. Sem pontuação.
+  let prevLocked: boolean | undefined
+  $effect(() => {
+    const lk = locked
+    if (prevLocked !== undefined && lk !== prevLocked) {
+      if (lk && dragging) dragging = false // cancela arraste em andamento ao travar
+      if (!decorative && lk) thunk() // thunk já dispara o háptico internamente
+    }
+    prevLocked = lk
   })
 
   // fase muda -> cobertura vai pro alvo da fase (sem interromper arraste) + sons
