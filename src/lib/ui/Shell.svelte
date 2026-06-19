@@ -8,6 +8,8 @@
 
   let showPause = $state(false)
   let showSettings = $state(false)
+  // showProfile: controlado pelo TopBar (chip de perfil no lobby); ProfileSheet montado na Task 6
+  let showProfile = $state(false)
 
   const inGameScreens: typeof game.screen[] = ['inRound']
 
@@ -35,6 +37,9 @@
     onToggleSound={() => game.toggleSound()}
     onMenu={inGameScreens.includes(game.screen) ? () => (showPause = true) : undefined}
     onHome={game.screen !== 'lobby' ? () => game.goHome() : undefined}
+    isLobby={game.screen === 'lobby'}
+    onOpenProfile={() => (showProfile = true)}
+    onOpenHowToPlay={() => game.openHowToPlay()}
   />
   <main class="screen-main">{@render children?.()}</main>
 
