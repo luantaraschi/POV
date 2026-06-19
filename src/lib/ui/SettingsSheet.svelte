@@ -54,7 +54,7 @@
   </div>
 
   <!-- Movimento reduzido (read-only, do sistema) -->
-  <div class="row no-border">
+  <div class="row">
     <div class="label-col">
       <span class="rlabel">Movimento reduzido</span>
       <span class="rsub">(do sistema) menos animações</span>
@@ -68,6 +68,24 @@
       aria-label="Movimento reduzido (definido pelo sistema)"
       disabled
     ><span class="knob"></span></button>
+  </div>
+
+  <!-- Idioma — andaime para i18n futuro; apenas PT-BR funcional na Fase 1 -->
+  <div class="row no-border">
+    <div class="label-col">
+      <span class="rlabel">Idioma</span>
+      <span class="rsub">interface do jogo</span>
+    </div>
+    <div class="lang-select-wrap">
+      <select
+        class="lang-select"
+        aria-label="Idioma da interface"
+        value="pt-BR"
+        disabled
+      >
+        <option value="pt-BR">🇧🇷 PT-BR</option>
+      </select>
+    </div>
   </div>
 
   <p class="footer-copy">POV v0.1</p>
@@ -184,6 +202,30 @@
     .knob {
       transition: none;
     }
+  }
+
+  /* Seletor de idioma — andaime PT-BR (desabilitado na Fase 1; estilo por tokens) */
+  .lang-select-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .lang-select {
+    appearance: none;
+    background: var(--sunk, rgba(255, 255, 255, 0.08));
+    border: 1px solid var(--hair, rgba(255, 255, 255, 0.12));
+    border-radius: 10px;
+    color: var(--ink, var(--text));
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: var(--fs-400, 0.875rem);
+    font-weight: 500;
+    padding: 7px 12px;
+    cursor: not-allowed;
+    opacity: 0.7;
+    min-height: 40px;
+  }
+  .lang-select:focus-visible {
+    outline: 3px solid var(--mustard, var(--pov-mostarda));
+    outline-offset: 3px;
   }
 
   .footer-copy {

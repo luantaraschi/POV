@@ -8,8 +8,7 @@
   let { dim = false, children }: { dim?: boolean; children?: import('svelte').Snippet } = $props()
 
   let showPause = $state(false)
-  let showSettings = $state(false)
-  // Perfil: abertura no store (global), para ser acionável do chip do lobby e do fluxo online.
+  // Configurações e Perfil: abertura no store (global) para ser acionável do lobby e do jogo.
 
   const inGameScreens: typeof game.screen[] = ['inRound']
 
@@ -40,6 +39,7 @@
     isLobby={game.screen === 'lobby'}
     onOpenProfile={() => game.openProfile()}
     onOpenHowToPlay={() => game.openHowToPlay()}
+    onOpenSettings={() => game.openSettings()}
   />
   <main class="screen-main">{@render children?.()}</main>
 
@@ -47,12 +47,12 @@
   <PauseSheet
     open={showPause}
     onClose={() => (showPause = false)}
-    onSettings={() => (showSettings = true)}
+    onSettings={() => game.openSettings()}
     onHowToPlay={() => { showPause = false; game.openHowToPlay() }}
   />
   <SettingsSheet
-    open={showSettings}
-    onClose={() => (showSettings = false)}
+    open={game.settingsOpen}
+    onClose={() => game.closeSettings()}
   />
   <ProfileSheet
     open={game.profileOpen}

@@ -37,6 +37,8 @@ function makeStore() {
   // ProfileSheet é global (montado no Shell); estado de abertura no store para abrir de qualquer
   // lugar (chip do lobby via TopBar, ou onboarding do fluxo online).
   let profileOpen = $state(false)
+  // SettingsSheet também é global; abrível do lobby (cluster do TopBar) e da PauseSheet in-game.
+  let settingsOpen = $state(false)
 
   let reduce = $state(false)
   if (typeof window !== 'undefined' && window.matchMedia) {
@@ -88,6 +90,9 @@ function makeStore() {
     get profileOpen() { return profileOpen },
     openProfile() { profileOpen = true },
     closeProfile() { profileOpen = false },
+    get settingsOpen() { return settingsOpen },
+    openSettings() { settingsOpen = true },
+    closeSettings() { settingsOpen = false },
     get returnScreen() { return returnScreen },
     toggleTheme() { theme = theme === 'dark' ? 'light' : 'dark'; if (typeof localStorage !== 'undefined') localStorage.setItem('pov-theme', theme) },
     toggleSound() { sound = !sound; setSoundEnabled(sound) },
