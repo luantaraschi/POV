@@ -30,6 +30,9 @@ export type ColorName = keyof typeof palette
 
 // ── Paleta-acento retrô (igual nos dois temas) ──────────────────────────────
 // Espelha os tokens CSS --red/--teal/--sage/--mustard/--pink/--coral/--navy/--cream.
+// ATENÇÃO: app.css é a fonte canônica dessas cores; esses hex devem ser mantidos
+// em sincronia manualmente. Duplicação intencional: SVG inline e canvas precisam
+// de hex via JS (não conseguem ler custom properties CSS diretamente).
 export const accent = {
   red: '#dd3b2e', teal: '#56b0aa', sage: '#8fce9f',
   mustard: '#e0a92e', pink: '#e7a6bf', coral: '#e8674a',
@@ -37,7 +40,9 @@ export const accent = {
 } as const
 
 // ── Cores de identidade do jogador (8 nomes canônicos, hex retrô) ─────────
-// Usadas em PlayerToken, Setup, Profile e no store (type PlayerColor).
+// Alvo: substituir a união do store (type PlayerColor) e os usos de `palette` em
+// PlayerToken, Setup e Profile nas próximas tasks. Por ora é a referência canônica;
+// os componentes ainda consomem `palette` diretamente.
 export const playerColors = {
   coral: '#e8674a', piscina: '#56b0aa', menta: '#8fce9f', mostarda: '#e0a92e',
   rosa: '#e7a6bf', lilas: '#9a86c4', laranja: '#e0892e', petroleo: '#2f6f74',
