@@ -3,6 +3,7 @@
   import { press } from '../audio/clicks'
   import { getProfile } from '../online/identity'
   import { playerColors } from '../design/tokens'
+  import { game } from '../game/store.svelte'
 
   type Props = {
     theme: 'dark' | 'light'
@@ -29,8 +30,12 @@
     onOpenHowToPlay,
   }: Props = $props()
 
-  // Perfil lido do localStorage para o chip de lobby
-  const profile = $derived(isLobby ? getProfile() : null)
+  // Perfil lido do localStorage para o chip de lobby.
+  // game.profileVersion entra como dependência reativa: ao salvar no ProfileSheet o chip re-lê.
+  const profile = $derived.by(() => {
+    game.profileVersion // dependência: re-lê o localStorage quando o perfil é salvo
+    return isLobby ? getProfile() : null
+  })
   // Iniciais para avatar fallback (primeira letra do nome)
   const initials = $derived(profile?.name ? profile.name.trim().charAt(0).toUpperCase() : '?')
   // Cor do avatar (da identidade do jogador)

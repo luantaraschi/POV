@@ -16,7 +16,11 @@
   let mode = $state<'local' | 'online'>('online')
 
   // Perfil salvo (nome/cor) para a prévia no campo "Seu nome" do modo online.
-  const profile = $derived(getProfile())
+  // game.profileVersion entra como dependência reativa: ao salvar no ProfileSheet a prévia re-lê.
+  const profile = $derived.by(() => {
+    game.profileVersion // dependência: re-lê o localStorage quando o perfil é salvo
+    return getProfile()
+  })
   const avatarColor = $derived(profile?.color ?? 'coral')
   const avatarHex = $derived(
     playerColors[avatarColor as keyof typeof playerColors] ?? playerColors.coral,

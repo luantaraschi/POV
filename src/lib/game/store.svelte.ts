@@ -31,6 +31,12 @@ function makeStore() {
   let theme = $state<'dark' | 'light'>(initTheme())
   let sound = $state(true)
   let haptics = $state(true)
+  // contador reativo: bumpado ao salvar o perfil para o chip do TopBar / prévia do Lobby
+  // (que leem getProfile() de forma não-reativa) reagirem e re-lerem o localStorage.
+  let profileVersion = $state(0)
+  // ProfileSheet é global (montado no Shell); estado de abertura no store para abrir de qualquer
+  // lugar (chip do lobby via TopBar, ou onboarding do fluxo online).
+  let profileOpen = $state(false)
 
   let reduce = $state(false)
   if (typeof window !== 'undefined' && window.matchMedia) {
@@ -77,6 +83,11 @@ function makeStore() {
     get sound() { return sound },
     get haptics() { return haptics },
     get reduce() { return reduce },
+    get profileVersion() { return profileVersion },
+    bumpProfile() { profileVersion++ },
+    get profileOpen() { return profileOpen },
+    openProfile() { profileOpen = true },
+    closeProfile() { profileOpen = false },
     get returnScreen() { return returnScreen },
     toggleTheme() { theme = theme === 'dark' ? 'light' : 'dark'; if (typeof localStorage !== 'undefined') localStorage.setItem('pov-theme', theme) },
     toggleSound() { sound = !sound; setSoundEnabled(sound) },

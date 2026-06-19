@@ -3,13 +3,13 @@
   import TopBar from './TopBar.svelte'
   import PauseSheet from './PauseSheet.svelte'
   import SettingsSheet from './SettingsSheet.svelte'
+  import ProfileSheet from '../profile/ProfileSheet.svelte'
   import { game } from '../game/store.svelte'
   let { dim = false, children }: { dim?: boolean; children?: import('svelte').Snippet } = $props()
 
   let showPause = $state(false)
   let showSettings = $state(false)
-  // showProfile: controlado pelo TopBar (chip de perfil no lobby); ProfileSheet montado na Task 6
-  let showProfile = $state(false)
+  // Perfil: abertura no store (global), para ser acionável do chip do lobby e do fluxo online.
 
   const inGameScreens: typeof game.screen[] = ['inRound']
 
@@ -38,7 +38,7 @@
     onMenu={inGameScreens.includes(game.screen) ? () => (showPause = true) : undefined}
     onHome={game.screen !== 'lobby' ? () => game.goHome() : undefined}
     isLobby={game.screen === 'lobby'}
-    onOpenProfile={() => (showProfile = true)}
+    onOpenProfile={() => game.openProfile()}
     onOpenHowToPlay={() => game.openHowToPlay()}
   />
   <main class="screen-main">{@render children?.()}</main>
@@ -53,6 +53,10 @@
   <SettingsSheet
     open={showSettings}
     onClose={() => (showSettings = false)}
+  />
+  <ProfileSheet
+    open={game.profileOpen}
+    onClose={() => game.closeProfile()}
   />
 </div>
 
