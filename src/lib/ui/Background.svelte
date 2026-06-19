@@ -4,7 +4,7 @@
   // pesado do herói é responsabilidade do CosmosBackdrop (montado pelo Lobby), não daqui.
   // Removidos o sunburst arco-íris e as ondas concêntricas berrantes do design antigo (§2 do spec:
   // "toda a cor concentrada no dial"; o usuário rejeitou versões pesadas).
-  type Props = { theme: 'dark' | 'light'; dim?: boolean }
+  type Props = { dim?: boolean }
   let { dim = false }: Props = $props()
 </script>
 

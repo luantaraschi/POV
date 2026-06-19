@@ -28,7 +28,7 @@
 </script>
 
 <div class="scene" class:theme-dark={game.theme === 'dark'} class:theme-light={game.theme === 'light'}>
-  <Background theme={game.theme} {dim} />
+  <Background {dim} />
   <TopBar
     theme={game.theme}
     sound={game.sound}
