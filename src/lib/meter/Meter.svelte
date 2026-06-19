@@ -36,6 +36,8 @@
   import { treatments, palette, type Treatment } from '../design/tokens'
   import { tick as soundTick, thunk, slide, friction, reveal as soundReveal, ratchet, unlockAudio } from '../audio/clicks'
 
+  type Marker = { p: number; color: string; label?: string }
+
   type Props = {
     target?: number
     value?: number
@@ -50,6 +52,7 @@
     showTarget?: boolean // revela o marcador do alvo + arco (sincronizado ao resultado na tela)
     lockGestures?: boolean // modo teste: peças se mexem livremente, mas NÃO disparam nova rodada
     decorative?: boolean // modo VITRINE: dial inerte (sem ponteiro/teclado/som, oculto ao leitor de tela)
+    markers?: Marker[] // pinos coloridos de palpite (online): { p, color, label? }; default []
   }
 
   let {
@@ -66,6 +69,7 @@
     showTarget = false,
     lockGestures = false,
     decorative = false,
+    markers = [],
   }: Props = $props()
 
   const t = $derived(treatments[treatment])
@@ -788,6 +792,21 @@
     </g>
   {/if}
 
+  <!-- pinos de palpite (online): um círculo colorido por jogador, na borda da face creme.
+       aria-hidden: decorativos — os resultados são anunciados em texto fora do SVG.
+       Renderizados ANTES da agulha para não obstruí-la. -->
+  {#if markers.length > 0}
+    <g aria-hidden="true" class="markerPins">
+      {#each markers as m, i (i)}
+        {@const [mx, my] = pointAt(m.p, R_FACE - 22)}
+        <g class="pin">
+          <circle cx={mx} cy={my} r="14" fill={m.color} stroke="#0e2148" stroke-width="2.5" />
+          <circle cx={mx} cy={my} r="5" fill="#fff" opacity="0.55" />
+        </g>
+      {/each}
+    </g>
+  {/if}
+
   <!-- agulha grossa com mira (chapada) — rotaciona suavemente em torno do eixo -->
   <g class="pointer" class:dragging class:moving={dragging} style:transform={`rotate(${rot}deg)`}>
     <line x1={CX} y1={CY} x2={CX} y2={CY - POINTER_LEN} stroke={palette.coral} stroke-width="9" stroke-linecap="round" />
@@ -890,6 +909,32 @@
     font-size: 26px;
     font-weight: 500;
     font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  /* pinos de palpite dos outros jogadores (online) */
+  .pin {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: pin-pop 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.4) both;
+  }
+  @keyframes pin-pop {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pin {
+      animation: none;
+    }
   }
 
   .targetMark {
