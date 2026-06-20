@@ -1,8 +1,11 @@
 <script lang="ts">
   import Meter, { type MeterState } from '../meter/Meter.svelte'
-  import Card from '../cards/Card.svelte'
-  import Console from '../ui/Console.svelte'
   import PrivacyHandoff from '../ui/PrivacyHandoff.svelte'
+  import PauseSheet from '../ui/PauseSheet.svelte'
+  import CosmosBackdrop from '../lobby/CosmosBackdrop.svelte'
+  import RoundChrome from '../game/RoundChrome.svelte'
+  import ClueCard from '../game/ClueCard.svelte'
+  import RevealChip from '../game/RevealChip.svelte'
   import { scoreFor, stepIndex } from '../meter/geometry'
   import { treatments, palette, type Treatment } from '../design/tokens'
   import { unlockAudio, press, dock, scoreSting, celebrate, tick, thunk, confirm } from '../audio/clicks'
@@ -18,6 +21,9 @@
     if (game.screen === 'inRound' && game.phase === 'hidden') showHandoff = true
   })
 
+  // PauseSheet local: o chip de pausa do RoundChrome abre a mesma folha do menu do TopBar.
+  let showPause = $state(false)
+
   let treatment = $state<Treatment>('hibrido')
   let devOpen = $state(false) // gaveta de controles de desenvolvimento (pular fases / tratamento)
   let lockGestures = $state(false) // modo teste: gestos mexem as peças mas NÃO avançam de fase
@@ -28,17 +34,6 @@
     clearTimeout(toastTimer)
     toastTimer = setTimeout(() => (toast = ''), 2200)
   }
-
-  // Ondas de frequência (a identidade "sintonia") — substitui a linha pontilhada.
-  function wavePath(w: number, midY: number, amp: number, len: number, phase: number): string {
-    let d = ''
-    for (let x = 0; x <= w; x += 3) {
-      const y = midY + amp * Math.sin((2 * Math.PI * x) / len + phase)
-      d += (x === 0 ? 'M ' : 'L ') + `${x} ${y.toFixed(2)}`
-    }
-    return d
-  }
-
 
   const states: Array<{ id: MeterState; label: string }> = [
     { id: 'hidden', label: 'Escondido' },
@@ -107,11 +102,12 @@
     prevCardIndex = ci
   })
 
+  // dica de fase (Fraunces itálico, sutil): reforça o gesto, sem virar botão
   const hint = $derived(
     game.phase === 'hidden' ? `Passe o POV pra ${game.dono.name} — só ${game.dono.name} vê o alvo.`
-    : game.phase === 'peek' ? 'Memorize o alvo e feche o medidor para liberar os palpites.'
-    : game.phase === 'guessing' ? 'Arraste o ponteiro — sinta as travas e os cliques.'
-    : 'Revelação! Compare o ponteiro com o alvo.',
+    : game.phase === 'peek' ? 'Abra a tampa para espiar — memorize e feche para liberar os palpites.'
+    : game.phase === 'guessing' ? 'Arraste a agulha e trave — sinta as travas e os cliques.'
+    : 'Revelação! Compare a agulha com o alvo.',
   )
 
   // --- resultado da revelação: pontuação, frase com personalidade, distância ---
@@ -137,7 +133,6 @@
 
   let showResult = $state(false)
   let displayScore = $state(0) // número exibido no chip — conta de 0 até a pontuação
-  let scoreLanded = $state(false) // dispara o "pop" só quando a contagem termina
   let revealTimer: ReturnType<typeof setTimeout> | undefined
   let countTimer: ReturnType<typeof setInterval> | undefined
 
@@ -147,11 +142,9 @@
     else scoreSting(revealScore)
     if (reduce || revealScore === 0) {
       displayScore = revealScore
-      scoreLanded = true
       return
     }
     displayScore = 0
-    scoreLanded = false
     let i = 0
     countTimer = setInterval(() => {
       i++
@@ -160,7 +153,6 @@
       if (i >= revealScore) {
         clearInterval(countTimer)
         countTimer = undefined
-        scoreLanded = true
       }
     }, 95)
   }
@@ -186,7 +178,6 @@
     } else {
       showResult = false
       displayScore = 0
-      scoreLanded = false
     }
   })
 
@@ -214,16 +205,18 @@
 <!-- sr-only screen heading for assistive tech -->
 <h1 class="sr-only">Rodada em andamento</h1>
 
+<!-- Chrome de topo quieto: rodada/sintonia/vez/pausa (linguagem Studio Sinal) -->
+<RoundChrome onPause={() => { press(); showPause = true }} />
+
 <!-- Shell already provides the <main> landmark; use a <div> here to avoid nesting -->
 <div class="stage" role="region" aria-label="Medidor de rodada">
-    <!-- indicador de rodada + sintonia acumulada (substitui o placar entre rodadas) -->
-    <div class="round-meta" aria-live="polite">
-      <span class="rm-round">Rodada <b>{game.roundIndex + 1}</b><span class="rm-of"> / {game.totalRounds}</span></span>
-      <span class="round-meta-sep" aria-hidden="true"></span>
-      <span class="rm-score">Sintonia <b>{game.groupScore}</b> pts</span>
-    </div>
-    <Console>
-      <div class="screen">
+    <!-- carta de pista (acima do dial): dois polos num card limpo -->
+    <ClueCard />
+
+    <!-- palco do dial-herói: halo cósmico (dose baixa) atrás do Meter intocado, que flutua sobre o saguão -->
+    <div class="dial-stage">
+      <CosmosBackdrop />
+      <div class="dial-elev">
         <Meter
           target={game.target}
           bind:value={game.value}
@@ -239,26 +232,18 @@
           {lockGestures}
         />
       </div>
-      <svg class="wave-band" viewBox="0 0 600 34" preserveAspectRatio="none" aria-hidden="true">
-        <path d={wavePath(600, 17, 7.5, 48, 0)} fill="none" stroke="var(--pov-coral)" stroke-width="3" vector-effect="non-scaling-stroke" />
-        <path d={wavePath(600, 17, 7.5, 48, 2.1)} fill="none" stroke="var(--pov-mostarda)" stroke-width="3" vector-effect="non-scaling-stroke" />
-        <path d={wavePath(600, 17, 7.5, 48, 4.2)} fill="none" stroke="var(--pov-bullseye)" stroke-width="3" vector-effect="non-scaling-stroke" />
-      </svg>
-      <div class="card-dock">
-        {#key game.cardIndex}
-          <Card left={game.card.left} right={game.card.right} leftColor={game.card.lc} rightColor={game.card.rc} />
-        {/key}
-      </div>
-    </Console>
+    </div>
 
     {#if game.phase === 'reveal'}
       {#if showResult}
-        <div class="result" style:--tier={tierVarValue}>
-          <div class="chip"><span class="num" class:pop={scoreLanded} aria-hidden="true">{displayScore}</span></div>
-          <div class="result-text">
-            <p class="phrase">{revealPhrase}</p>
-            <p class="pts">{revealScore} pontos · {gapLabel}</p>
-          </div>
+        <!-- chip de resultado: frase de tier (Fraunces) + pontos (Clash) — neutro, o Meter pinta a cor -->
+        <div class="reveal-block" style:--tier={tierVarValue}>
+          <RevealChip score={displayScore as 0 | 2 | 3 | 4} phrase={revealPhrase} />
+          {#if !game.reduce}
+            <p class="hint spin">
+              <span class="spin-glyph" aria-hidden="true">↻</span> Gire o disco para a próxima rodada.
+            </p>
+          {/if}
         </div>
         <p class="sr-only" role="status" aria-live="polite" aria-atomic="true">{revealScore} pontos, {gapLabel}.</p>
       {:else}
@@ -271,9 +256,6 @@
 
   <footer class="footer">
     <button class="btn-primary primary-action" onclick={advancePrimary}>{primaryLabel}</button>
-    {#if game.phase === 'reveal' && !game.reduce}
-      <p class="spin-hint"><span class="spin-glyph" aria-hidden="true">↻</span> Gire o disco para a próxima rodada.</p>
-    {/if}
     <details class="dev" bind:open={devOpen}>
       <summary>dev</summary>
       <div class="dev-controls">
@@ -318,6 +300,14 @@
     onCancel={() => { press(); showHandoff = false }}
   />
 
+  <!-- pausa: mesma folha do menu do TopBar, acionável pelo chip do RoundChrome -->
+  <PauseSheet
+    open={showPause}
+    onClose={() => (showPause = false)}
+    onSettings={() => game.openSettings()}
+    onHowToPlay={() => { showPause = false; game.openHowToPlay() }}
+  />
+
 <style>
   .sr-only {
     position: absolute;
@@ -330,7 +320,7 @@
     white-space: nowrap;
     border: 0;
   }
-  /* ---- STAGE ---- */
+  /* ---- STAGE (saguão calmo Studio Sinal, igual ao lobby em movimento) ---- */
   .stage {
     position: relative;
     z-index: 1;
@@ -338,81 +328,41 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: var(--sp-4);
-    padding: var(--sp-5) var(--sp-4) var(--sp-6);
+    padding: var(--sp-4) var(--sp-4) var(--sp-6);
   }
-  .screen {
-    border-radius: var(--r-4);
-  }
-  .wave-band {
-    display: block;
-    width: 100%;
-    height: 30px;
-    margin: var(--sp-4) 0 var(--sp-3);
-    opacity: 0.92;
-  }
-  .card-dock {
+  /* palco do dial: ancora o halo cósmico atrás do Meter (que fica intocado) */
+  .dial-stage {
+    position: relative;
     display: flex;
     justify-content: center;
-    padding: var(--sp-3) var(--sp-3) var(--sp-2);
-    border-radius: var(--r-4);
-    background: var(--dock-bg);
-    box-shadow: var(--inset-well);
-  }
-  /* indicador de rodada + sintonia: pílula tátil de status (substitui o placar entre rodadas) */
-  .round-meta {
-    align-self: center;
-    display: inline-flex;
     align-items: center;
-    gap: var(--sp-3);
-    margin: 0;
-    padding: 6px var(--sp-3);
-    border-radius: 999px;
-    background: var(--ctrl-track);
-    border: 1px solid var(--ctrl-border);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    font-family: 'Space Grotesk', system-ui, sans-serif;
-    font-size: var(--fs-300);
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    color: var(--text-soft);
-    font-variant-numeric: tabular-nums lining-nums;
+    width: 100%;
   }
-  .round-meta b {
-    font-weight: 700;
-    color: var(--text);
-  }
-  .rm-of {
-    opacity: 0.6;
-  }
-  /* divisor vertical hairline entre rodada e sintonia */
-  .round-meta-sep {
-    width: 1px;
-    height: 0.95em;
-    background: currentColor;
-    opacity: 0.28;
-  }
-  .rm-score b {
-    color: var(--pov-mostarda);
-  }
-  .hint {
-    align-self: flex-start;
+  /* o dial-herói flutua sobre o saguão: sombra de produto sutil, acima do halo (z-index) */
+  .dial-elev {
+    position: relative;
+    z-index: 1;
     width: min(720px, 96vw);
-    margin: 0 auto;
-    padding-left: var(--sp-2);
-    font-size: var(--fs-400);
-    font-weight: 500;
-    line-height: var(--lh-body);
-    text-wrap: pretty;
-    color: var(--text-soft);
+    filter: drop-shadow(0 14px 22px rgba(27, 35, 80, 0.15));
   }
-  .hint.suspense {
+  /* ---- HINT de fase (Fraunces itálico, sutil) ---- */
+  .hint {
     align-self: center;
+    width: min(560px, 94vw);
+    margin: 0 auto;
     text-align: center;
     font-family: 'Fraunces', Georgia, serif;
     font-style: italic;
+    font-size: var(--fs-500);
+    line-height: var(--lh-body);
+    text-wrap: pretty;
+    color: var(--ink-soft);
+  }
+  .hint.suspense {
     font-size: var(--fs-600);
-    color: var(--text);
+    color: var(--ink);
     animation: suspense-pulse 1.1s ease-in-out infinite;
   }
   @keyframes suspense-pulse {
@@ -422,6 +372,50 @@
     }
     50% {
       opacity: 1;
+    }
+  }
+
+  /* bloco da revelação: chip + dica de girar */
+  .reveal-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-2);
+  }
+  /* dica do gesto de girar a roleta na revelação */
+  .hint.spin {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    margin: 0;
+    font-style: normal;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: var(--fs-300);
+    font-weight: 600;
+    color: var(--ink-soft);
+    letter-spacing: 0.01em;
+    animation: spin-hint-in 0.4s 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  /* a seta gira devagar, convidando o gesto físico de rodar o disco */
+  .spin-glyph {
+    display: inline-block;
+    font-size: 1.15em;
+    color: var(--mustard);
+    animation: spin-glyph 3.2s linear infinite;
+  }
+  @keyframes spin-glyph {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes spin-hint-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 
@@ -436,7 +430,7 @@
   .bloom {
     position: absolute;
     left: 50%;
-    top: 33%;
+    top: 40%;
     width: 340px;
     height: 340px;
     z-index: 8;
@@ -460,7 +454,7 @@
   .confetti span {
     position: absolute;
     left: 50%;
-    top: 33%;
+    top: 40%;
     width: var(--r);
     height: var(--r);
     border-radius: 50%;
@@ -480,117 +474,6 @@
       opacity: 0;
     }
   }
-  .result {
-    align-self: center;
-    width: fit-content;
-    max-width: min(720px, 96vw);
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--sp-4);
-    padding: var(--sp-3) var(--sp-5);
-    border-radius: var(--r-4);
-    background: var(--result-bg);
-    border: 1px solid var(--result-border);
-    box-shadow: var(--elev-2);
-    color: var(--text);
-    animation: result-in 0.42s cubic-bezier(0.18, 0.89, 0.32, 1.05) both;
-  }
-  .chip {
-    flex: none;
-    display: grid;
-    place-items: center;
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    background: var(--pov-offwhite);
-    border: 3px solid var(--tier);
-    box-shadow:
-      var(--elev-1),
-      0 0 0 4px color-mix(in srgb, var(--tier) 18%, transparent),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    /* o disco de pontuação entra primeiro (split + stagger do resultado) */
-    animation: chip-in 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.18) both;
-  }
-  @keyframes chip-in {
-    from {
-      opacity: 0;
-      transform: scale(0.6);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-  .chip .num {
-    font-family: 'Bricolage Grotesque', sans-serif;
-    font-weight: 800;
-    font-size: 2.4rem;
-    line-height: 1;
-    color: var(--tier);
-    font-variant-numeric: tabular-nums lining-nums;
-  }
-  /* o "pop" toca quando a contagem chega na pontuação final, não no início */
-  .chip .num.pop {
-    animation: num-pop 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
-  }
-  .result-text {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .result-text .phrase {
-    margin: 0;
-    font-family: 'Fraunces', Georgia, serif;
-    font-style: italic;
-    font-weight: 600;
-    font-size: var(--fs-700);
-    line-height: 1.1;
-    text-wrap: balance;
-    color: var(--text);
-    /* texto entra logo após o disco (stagger ~110ms) */
-    animation: result-stagger 0.42s 0.11s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  .result-text .pts {
-    margin: 0;
-    font-size: var(--fs-400);
-    font-weight: 600;
-    color: var(--text-soft);
-    font-variant-numeric: tabular-nums;
-    animation: result-stagger 0.42s 0.19s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  @keyframes result-stagger {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  @keyframes result-in {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  @keyframes num-pop {
-    0% {
-      transform: scale(0.4);
-    }
-    60% {
-      transform: scale(1.15);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
 
   /* ---- FOOTER ---- */
   .footer {
@@ -603,49 +486,12 @@
     width: 100%;
     padding: var(--sp-4) max(var(--sp-4), env(safe-area-inset-right)) max(var(--sp-5), env(safe-area-inset-bottom))
       max(var(--sp-4), env(safe-area-inset-left));
-    background: linear-gradient(0deg, var(--footer-grad) 58%, transparent);
-    backdrop-filter: blur(5px);
+    background: linear-gradient(0deg, var(--bone) 58%, transparent);
   }
   /* ação primária guiada: ocupa a largura, é o foco da rodada */
   .primary-action {
     width: min(440px, 100%);
     align-self: center;
-  }
-  /* dica do gesto de girar a roleta na revelação */
-  .spin-hint {
-    align-self: center;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45em;
-    margin: calc(-1 * var(--sp-1)) 0 0;
-    font-size: var(--fs-300);
-    font-weight: 600;
-    color: var(--text-soft);
-    letter-spacing: 0.01em;
-    /* entra suave junto com o resultado */
-    animation: spin-hint-in 0.4s 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  /* a seta gira devagar, convidando o gesto físico de rodar o disco */
-  .spin-glyph {
-    display: inline-block;
-    font-size: 1.15em;
-    color: var(--pov-mostarda);
-    animation: spin-glyph 3.2s linear infinite;
-  }
-  @keyframes spin-glyph {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  @keyframes spin-hint-in {
-    from {
-      opacity: 0;
-      transform: translateY(4px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
   /* toast flutuante: feedback curto dos gestos físicos */
   .toast {
@@ -657,12 +503,13 @@
     max-width: 88vw;
     padding: var(--sp-2) var(--sp-4);
     border-radius: var(--r-4);
-    background: var(--result-bg);
-    border: 1px solid var(--result-border);
-    box-shadow: var(--elev-2);
+    background: var(--surface);
+    border: 1px solid var(--hair);
+    box-shadow: 0 10px 30px -12px rgba(27, 35, 80, 0.4);
+    font-family: 'Inter', system-ui, sans-serif;
     font-size: var(--fs-400);
     font-weight: 600;
-    color: var(--text);
+    color: var(--ink);
     white-space: nowrap;
     animation: toast-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
@@ -679,20 +526,15 @@
   @media (prefers-reduced-motion: reduce) {
     .toast,
     .hint.suspense,
-    .result,
-    .chip .num.pop,
-    .spin-hint,
-    .spin-glyph,
-    .result-text .phrase,
-    .result-text .pts,
-    .chip {
+    .hint.spin,
+    .spin-glyph {
       animation: none;
     }
   }
   /* gaveta dev: pular fases / trocar tratamento — de-emphasized, fora do fluxo do jogador */
   .dev {
     align-self: center;
-    width: min(720px, 96vw);
+    width: min(560px, 94vw);
   }
   .dev > summary {
     list-style: none;
@@ -704,7 +546,7 @@
     font-weight: 600;
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--text-soft);
+    color: var(--ink-soft);
     opacity: 0.55;
     cursor: pointer;
     border-radius: var(--r-2);
@@ -718,7 +560,7 @@
     opacity: 0.9;
   }
   .dev > summary:focus-visible {
-    outline: 2px solid var(--pov-mostarda);
+    outline: 2px solid var(--mustard);
     outline-offset: 2px;
   }
   .dev-controls {
@@ -734,17 +576,17 @@
     gap: var(--sp-2);
     font-family: 'Space Grotesk', sans-serif;
     font-size: var(--fs-400);
-    color: var(--text-soft);
+    color: var(--ink-soft);
     cursor: pointer;
   }
   .dev-toggle input {
     width: 18px;
     height: 18px;
-    accent-color: var(--pov-coral);
+    accent-color: var(--red);
     cursor: pointer;
   }
 
-  /* ---- SEGMENTED CONTROL ---- */
+  /* ---- SEGMENTED CONTROL (gaveta dev) ---- */
   .segment {
     display: grid;
     grid-auto-flow: column;
@@ -752,8 +594,8 @@
     gap: var(--sp-1);
     padding: var(--sp-1);
     border-radius: var(--r-4);
-    background: var(--ctrl-track);
-    border: 1px solid var(--ctrl-border);
+    background: var(--sunk);
+    border: 1px solid var(--hair);
   }
   .segment.small {
     grid-auto-columns: auto;
@@ -768,64 +610,58 @@
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 600;
     font-size: var(--fs-400);
-    color: var(--ctrl-fg);
+    color: var(--ink-soft);
     transition:
       color 0.12s,
       background 0.12s,
       transform 0.08s ease;
   }
   .segment button[aria-pressed='true'] {
-    color: var(--ctrl-active-fg);
-    background: var(--ctrl-active-bg);
+    color: var(--ink);
+    background: var(--surface);
   }
   .segment button:active {
     transform: scale(0.96);
   }
   .segment button:focus-visible {
-    outline: 3px solid var(--pov-mostarda);
+    outline: 3px solid var(--mustard);
     outline-offset: 2px;
   }
 
-  /* ---- PRIMARY BUTTON ---- */
+  /* ---- PRIMARY BUTTON (--red, branco) ---- */
   .btn-primary {
     border: 0;
     cursor: pointer;
     min-height: 54px;
     border-radius: var(--r-4);
     padding: var(--sp-3) var(--sp-5);
-    font-family: 'Bricolage Grotesque', sans-serif;
+    font-family: 'Clash Display', sans-serif;
     font-weight: 700;
     font-size: var(--fs-600);
     color: #fff;
     letter-spacing: 0.01em;
     text-wrap: balance;
-    background: var(--pov-coral-cta);
-    border-bottom: 4px solid var(--pov-coral-lo);
+    background: var(--red);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.18),
-      0 4px 14px -4px rgba(200, 65, 47, 0.5);
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      0 4px 14px -4px color-mix(in srgb, var(--red) 55%, transparent);
     transition:
       transform 0.08s ease,
       box-shadow 0.12s ease,
-      border-bottom-width 0.08s ease,
       filter 0.12s ease;
   }
   .btn-primary:hover {
-    filter: brightness(1.05);
+    filter: brightness(1.06);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.22),
-      0 6px 18px -4px rgba(200, 65, 47, 0.6);
+      0 6px 18px -4px color-mix(in srgb, var(--red) 65%, transparent);
   }
   .btn-primary:active {
     transform: translateY(2px);
-    border-bottom-width: 2px;
-    border-bottom-color: var(--pov-coral-skirt);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      0 2px 6px -2px rgba(200, 65, 47, 0.4);
+    filter: brightness(0.96);
   }
   .btn-primary:focus-visible {
-    outline: 3px solid var(--pov-mostarda);
+    outline: 3px solid var(--mustard);
     outline-offset: 3px;
   }
 </style>

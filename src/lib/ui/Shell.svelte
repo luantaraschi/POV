@@ -29,18 +29,21 @@
 
 <div class="scene" class:theme-dark={game.theme === 'dark'} class:theme-light={game.theme === 'light'}>
   <Background {dim} />
-  <TopBar
-    theme={game.theme}
-    sound={game.sound}
-    onToggleTheme={() => game.toggleTheme()}
-    onToggleSound={() => game.toggleSound()}
-    onMenu={inGameScreens.includes(game.screen) ? () => (showPause = true) : undefined}
-    onHome={game.screen !== 'lobby' ? () => game.goHome() : undefined}
-    isLobby={game.screen === 'lobby'}
-    onOpenProfile={() => game.openProfile()}
-    onOpenHowToPlay={() => game.openHowToPlay()}
-    onOpenSettings={() => game.openSettings()}
-  />
+  <!-- Na rodada (inRound) a RoundChrome é a barra de topo; a TopBar global some para não duplicar. -->
+  {#if game.screen !== 'inRound'}
+    <TopBar
+      theme={game.theme}
+      sound={game.sound}
+      onToggleTheme={() => game.toggleTheme()}
+      onToggleSound={() => game.toggleSound()}
+      onMenu={inGameScreens.includes(game.screen) ? () => (showPause = true) : undefined}
+      onHome={game.screen !== 'lobby' ? () => game.goHome() : undefined}
+      isLobby={game.screen === 'lobby'}
+      onOpenProfile={() => game.openProfile()}
+      onOpenHowToPlay={() => game.openHowToPlay()}
+      onOpenSettings={() => game.openSettings()}
+    />
+  {/if}
   <main class="screen-main">{@render children?.()}</main>
 
   <!-- PauseSheet first so SettingsSheet stacks on top (higher z-index via DOM order) -->
